@@ -21,8 +21,7 @@ export default function GameScreen() {
   const { completeLevel } = useGameStore();
   
   const level = LEVEL_CONFIGS.find(l => l.id === parseInt(levelId, 10));
-  // 为每一关分配固定颜色：按红橙黄绿青蓝紫顺序循环
-  const cardColorIndex = color ? parseInt(color, 10) : (parseInt(levelId, 10) - 1) % CARD_COLORS.length;
+  const cardColorIndex = color ? parseInt(color, 10) : Math.floor(Math.random() * CARD_COLORS.length);
   const cardColor = CARD_COLORS[cardColorIndex];
   
   // Game state
