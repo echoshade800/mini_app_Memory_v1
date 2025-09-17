@@ -6,21 +6,34 @@
 
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import useGameStore from '../../store/useGameStore';
 import { LEVEL_CONFIGS } from '../../constants/levels';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [isRouterReady, setIsRouterReady] = useState(false);
   const { gameData, isLoading, error, initialize } = useGameStore();
 
   useEffect(() => {
+    // Wait for router to be ready
+    const checkRouter = () => {
+      if (router.isReady) {
+        setIsRouterReady(true);
+      } else {
+        setTimeout(checkRouter, 50);
+      }
+    };
+    checkRouter();
+  }, [router]);
+
+  useEffect(() => {
     // Show onboarding if first time
-    if (!gameData.seenTutorial) {
+    if (isRouterReady && !isLoading && !gameData.seenTutorial) {
       router.push('/onboarding');
     }
-  }, [gameData.seenTutorial]);
+  }, [gameData.seenTutorial, isRouterReady, isLoading, router]);
 
   if (isLoading) {
     return (
