@@ -7,6 +7,7 @@
 import { View, Text, StyleSheet, Alert, BackHandler } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { LEVEL_CONFIGS, EMOJI_POOL, CARD_COLORS } from '../../constants/levels';
 import { previewTimeSec, calculateTotalScore, calculateComboSegments } from '../../utils/scoring';
@@ -57,13 +58,15 @@ export default function GameScreen() {
   // Handle back button
   useFocusEffect(
     useCallback(() => {
+      if (Platform.OS === 'web') return;
+      
       const onBackPress = () => {
         handleBackPress();
         return true;
       };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
-      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription?.remove();
     }, [])
   );
 
@@ -180,6 +183,9 @@ export default function GameScreen() {
   };
 
   const showCompletionDialog = (score) => {
+    const isLastLevel = level.id === 25;
+    const nextLevelId = level.id + 1;
+    
     Alert.alert(
       'Level Complete! 🎉',
       `Score: ${score.total}/${score.maxPossible} (${score.totalPercent}%)\n\n` +
@@ -195,8 +201,16 @@ export default function GameScreen() {
           }
         },
         { 
-          text: 'Continue', 
-          onPress: () => router.back()
+          text: isLastLevel ? 'Finish' : 'Continue', 
+          onPress: () => {
+            if (isLastLevel) {
+              // 最后一关完成，返回主页
+              router.push('/(tabs)');
+            } else {
+              // 进入下一关
+              router.replace(`/game/${nextLevelId}`);
+            }
+          }
         }
       ]
     );
