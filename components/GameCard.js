@@ -91,7 +91,6 @@ export default function GameCard({
     >
       {/* Card Back (face down) */}
       <Animated.View style={[styles.card, styles.cardBack, frontStyle]}>
-        <Text style={styles.cardPattern}>?</Text>
       </Animated.View>
 
       {/* Card Front (emoji face) */}
