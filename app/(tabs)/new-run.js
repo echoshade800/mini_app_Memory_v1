@@ -15,12 +15,14 @@ export default function NewRunScreen() {
   const router = useRouter();
   const { gameData } = useGameStore();
   const [selectedLevel, setSelectedLevel] = useState(gameData.maxLevel > 1 ? gameData.maxLevel - 1 : 1);
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedColor, setSelectedColor] = useState((gameData.maxLevel > 1 ? gameData.maxLevel - 2 : 0) % CARD_COLORS.length);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const availableLevels = LEVEL_CONFIGS.filter(level => level.id <= gameData.maxLevel);
   const selectedLevelConfig = LEVEL_CONFIGS.find(level => level.id === selectedLevel);
+  const defaultColorIndex = (selectedLevel - 1) % CARD_COLORS.length;
+  const colorNames = ['红色', '橙色', '黄色', '绿色', '青色', '蓝色', '紫色'];
 
   const handleStartGame = async () => {
     if (!selectedLevelConfig) {
@@ -36,7 +38,7 @@ export default function NewRunScreen() {
       
       // Navigate to game after short delay
       setTimeout(() => {
-        router.push(`/game/${selectedLevel}?color=${selectedColor || 0}`);
+        router.push(`/game/${selectedLevel}`);
         setShowSuccess(false);
         setIsSubmitting(false);
       }, 1000);
@@ -49,7 +51,7 @@ export default function NewRunScreen() {
 
   const handleReset = () => {
     setSelectedLevel(gameData.maxLevel > 1 ? gameData.maxLevel - 1 : 1);
-    setSelectedColor(null);
+    setSelectedColor((gameData.maxLevel > 1 ? gameData.maxLevel - 2 : 0) % CARD_COLORS.length);
     setShowSuccess(false);
   };
 
@@ -78,6 +80,15 @@ export default function NewRunScreen() {
         <Text style={styles.sectionSubtitle}>
           You can play any level up to {gameData.maxLevel}
         </Text>
+        
+        {/* Update selected color when level changes */}
+        {selectedLevel && (() => {
+          const newDefaultColor = (selectedLevel - 1) % CARD_COLORS.length;
+          if (selectedColor !== newDefaultColor) {
+            setTimeout(() => setSelectedColor(newDefaultColor), 0);
+          }
+          return null;
+        })()}
         
         <ScrollView 
           horizontal 
@@ -112,6 +123,10 @@ export default function NewRunScreen() {
               ]}>
                 {level.cards} cards
               </Text>
+              <View style={[
+                styles.levelColorIndicator,
+                { backgroundColor: CARD_COLORS[(level.id - 1) % CARD_COLORS.length] }
+              ]} />
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -146,9 +161,9 @@ export default function NewRunScreen() {
 
       {/* Color Selection */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Card Theme (Optional)</Text>
+        <Text style={styles.sectionTitle}>卡牌主题</Text>
         <Text style={styles.sectionSubtitle}>
-          Choose a color for your card backs, or leave blank for random
+          第{selectedLevel}关默认颜色：{colorNames[defaultColorIndex]}
         </Text>
         
         <View style={styles.colorGrid}>
@@ -160,10 +175,13 @@ export default function NewRunScreen() {
                 { backgroundColor: color },
                 selectedColor === index && styles.colorOptionSelected
               ]}
-              onPress={() => setSelectedColor(selectedColor === index ? null : index)}
+              onPress={() => setSelectedColor(index)}
             >
               {selectedColor === index && (
                 <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+              )}
+              {index === defaultColorIndex && selectedColor !== index && (
+                <Ionicons name="star" size={16} color="#FFFFFF" />
               )}
             </TouchableOpacity>
           ))}
@@ -278,6 +296,14 @@ const styles = StyleSheet.create({
   },
   levelOptionDetailsSelected: {
     color: '#E5E7EB',
+  },
+  levelColorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   levelInfo: {
     backgroundColor: '#FFFFFF',

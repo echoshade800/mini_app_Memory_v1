@@ -21,7 +21,7 @@ export default function GameScreen() {
   const { completeLevel } = useGameStore();
   
   const level = LEVEL_CONFIGS.find(l => l.id === parseInt(levelId, 10));
-  const cardColorIndex = color ? parseInt(color, 10) : Math.floor(Math.random() * CARD_COLORS.length);
+  const cardColorIndex = (parseInt(levelId, 10) - 1) % CARD_COLORS.length;
   const cardColor = CARD_COLORS[cardColorIndex];
   
   // Game state
