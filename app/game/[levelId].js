@@ -15,7 +15,7 @@ import { previewTimeSec, calculateTotalScore, calculateComboSegments } from '../
 import useGameStore from '../../store/useGameStore';
 import GameHeader from '../../components/GameHeader';
 import GameGrid from '../../components/GameGrid';
-import ScoreProgressBars from '../components/ScoreProgressBars';
+import ScoreProgressBars from '../../components/ScoreProgressBars';
 
 export default function GameScreen() {
   const router = useRouter();
