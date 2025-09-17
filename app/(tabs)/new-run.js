@@ -15,7 +15,8 @@ export default function NewRunScreen() {
   const router = useRouter();
   const { gameData } = useGameStore();
   const [selectedLevel, setSelectedLevel] = useState(gameData.maxLevel > 1 ? gameData.maxLevel - 1 : 1);
-  const [selectedColor, setSelectedColor] = useState(null);
+  // 默认选择该关卡对应的固定颜色
+  const [selectedColor, setSelectedColor] = useState((gameData.maxLevel > 1 ? gameData.maxLevel - 2 : 0) % CARD_COLORS.length);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -36,7 +37,7 @@ export default function NewRunScreen() {
       
       // Navigate to game after short delay
       setTimeout(() => {
-        router.push(`/game/${selectedLevel}?color=${selectedColor || 0}`);
+        router.push(`/game/${selectedLevel}?color=${selectedColor}`);
         setShowSuccess(false);
         setIsSubmitting(false);
       }, 1000);
@@ -49,7 +50,7 @@ export default function NewRunScreen() {
 
   const handleReset = () => {
     setSelectedLevel(gameData.maxLevel > 1 ? gameData.maxLevel - 1 : 1);
-    setSelectedColor(null);
+    setSelectedColor((gameData.maxLevel > 1 ? gameData.maxLevel - 2 : 0) % CARD_COLORS.length);
     setShowSuccess(false);
   };
 
@@ -146,9 +147,9 @@ export default function NewRunScreen() {
 
       {/* Color Selection */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Card Theme (Optional)</Text>
+        <Text style={styles.sectionTitle}>Card Theme</Text>
         <Text style={styles.sectionSubtitle}>
-          Choose a color for your card backs, or leave blank for random
+          Level {selectedLevel} default color: {['Red', 'Orange', 'Yellow', 'Green', 'Cyan', 'Blue', 'Purple'][(selectedLevel - 1) % 7]}
         </Text>
         
         <View style={styles.colorGrid}>
@@ -158,12 +159,17 @@ export default function NewRunScreen() {
               style={[
                 styles.colorOption,
                 { backgroundColor: color },
-                selectedColor === index && styles.colorOptionSelected
+                selectedColor === index && styles.colorOptionSelected,
+                // 高亮显示该关卡的默认颜色
+                index === (selectedLevel - 1) % CARD_COLORS.length && styles.colorOptionDefault
               ]}
-              onPress={() => setSelectedColor(selectedColor === index ? null : index)}
+              onPress={() => setSelectedColor(index)}
             >
               {selectedColor === index && (
                 <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+              )}
+              {index === (selectedLevel - 1) % CARD_COLORS.length && selectedColor !== index && (
+                <Ionicons name="star" size={16} color="#FFFFFF" />
               )}
             </TouchableOpacity>
           ))}
@@ -187,7 +193,11 @@ export default function NewRunScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+        <TouchableOpacity style={styles.resetButton} onPress={() => {
+          setSelectedLevel(gameData.maxLevel > 1 ? gameData.maxLevel - 1 : 1);
+          setSelectedColor((gameData.maxLevel > 1 ? gameData.maxLevel - 2 : 0) % CARD_COLORS.length);
+          setShowSuccess(false);
+        }}>
           <Ionicons name="refresh" size={16} color="#6B7280" />
           <Text style={styles.resetButtonText}>Reset</Text>
         </TouchableOpacity>
@@ -324,6 +334,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 6,
+  },
+  colorOptionDefault: {
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
   },
   actionContainer: {
     paddingHorizontal: 20,
