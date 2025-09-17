@@ -18,7 +18,9 @@ export default function useBootstrap() {
       }
     };
     
-    initializeApp();
+    initializeApp().catch((err) => {
+      console.error('Failed to initialize app:', err);
+    });
   }, []);
 
   return { isLoading, error };
