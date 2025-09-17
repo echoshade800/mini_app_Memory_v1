@@ -9,11 +9,13 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { Animated } from 'react-native';
 import { LEVEL_CONFIGS, EMOJI_POOL, CARD_COLORS } from '../../constants/levels';
 import { previewTimeSec, calculateTotalScore, calculateComboSegments } from '../../utils/scoring';
 import useGameStore from '../../store/useGameStore';
 import GameHeader from '../../components/GameHeader';
 import GameGrid from '../../components/GameGrid';
+import ScoreProgressBars from '../../components/ScoreProgressBars';
 
 export default function GameScreen() {
   const router = useRouter();
@@ -33,6 +35,8 @@ export default function GameScreen() {
   const [timer, setTimer] = useState(0);
   const [previewTimer, setPreviewTimer] = useState(0);
   const [matchHistory, setMatchHistory] = useState([]);
+  const [showScoreAnimation, setShowScoreAnimation] = useState(false);
+  const [finalScoreData, setFinalScoreData] = useState(null);
   
   // Refs
   const timerRef = useRef(null);
@@ -173,13 +177,23 @@ export default function GameScreen() {
     const comboSegments = calculateComboSegments(matchHistory);
     const finalScore = calculateTotalScore(level.id, pairs, attempts, timer, comboSegments);
     
+    // Store score data for animation
+    setFinalScoreData(finalScore);
+    
     // Save progress
     completeLevel(level.id, finalScore, timer);
     
-    // Show completion dialog
+    // Show score animation first
     setTimeout(() => {
-      showCompletionDialog(finalScore);
+      setShowScoreAnimation(true);
     }, 1000);
+  };
+
+  const handleScoreAnimationComplete = () => {
+    setShowScoreAnimation(false);
+    if (finalScoreData) {
+      showCompletionDialog(finalScoreData);
+    }
   };
 
   const showCompletionDialog = (score) => {
@@ -269,6 +283,14 @@ export default function GameScreen() {
           <Text style={styles.previewTimer}>{previewTimer}</Text>
           <Text style={styles.previewText}>Memorize the positions!</Text>
         </View>
+      )}
+
+      {showScoreAnimation && finalScoreData && (
+        <ScoreProgressBars
+          scoreData={finalScoreData}
+          levelId={level.id}
+          onAnimationComplete={handleScoreAnimationComplete}
+        />
       )}
 
       <GameGrid
