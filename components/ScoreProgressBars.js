@@ -18,6 +18,7 @@ export default function ScoreProgressBars({
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const maxScore = 10 * levelId; // Each category max score
+  const isLastLevel = levelId === 25;
 
   useEffect(() => {
     // Fade in the overlay
@@ -122,6 +123,16 @@ export default function ScoreProgressBars({
           <Text style={styles.continueButtonText}>Continue</Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => {
+          // 重新开始当前关卡的逻辑需要从父组件传入
+          if (window.restartLevel) {
+            window.restartLevel();
+          }
+        }}>
+          <Text style={styles.secondaryButtonText}>Play Again</Text>
+          <Ionicons name="refresh" size={20} color="#6B7280" />
+        </TouchableOpacity>
       </View>
     </Animated.View>
   );
@@ -225,6 +236,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  secondaryButton: {
+    backgroundColor: '#F3F4F6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  secondaryButtonText: {
+    color: '#6B7280',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 8,
   },
   continueButtonText: {
     color: '#FFFFFF',

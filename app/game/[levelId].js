@@ -186,48 +186,29 @@ export default function GameScreen() {
     // Show score animation first
     setTimeout(() => {
       setShowScoreAnimation(true);
+      
+      // 设置重新开始游戏的全局函数
+      window.restartLevel = () => {
+        setShowScoreAnimation(false);
+        clearAllTimers();
+        initializeGame();
+      };
     }, 1000);
   };
 
   const handleScoreAnimationComplete = () => {
     setShowScoreAnimation(false);
-    if (finalScoreData) {
-      showCompletionDialog(finalScoreData);
-    }
-  };
-
-  const showCompletionDialog = (score) => {
     const isLastLevel = level.id === 25;
     const nextLevelId = level.id + 1;
     
-    Alert.alert(
-      'Level Complete! 🎉',
-      `Score: ${score.total}/${score.maxPossible} (${score.totalPercent}%)\n\n` +
-      `Performance: ${score.performance}\n` +
-      `Combo: ${score.combo}\n` +
-      `Time: ${score.time}`,
-      [
-        { 
-          text: 'Play Again', 
-          onPress: () => {
-            clearAllTimers();
-            initializeGame();
-          }
-        },
-        { 
-          text: isLastLevel ? 'Finish' : 'Continue', 
-          onPress: () => {
-            if (isLastLevel) {
-              // 最后一关完成，返回主页
-              router.push('/(tabs)');
-            } else {
-              // 进入下一关
-              router.replace(`/game/${nextLevelId}`);
-            }
-          }
-        }
-      ]
-    );
+    // 直接处理关卡完成逻辑，不显示对话框
+    if (isLastLevel) {
+      // 最后一关完成，返回主页
+      router.push('/(tabs)');
+    } else {
+      // 进入下一关
+      router.replace(`/game/${nextLevelId}`);
+    }
   };
 
   const handleMenuPress = () => {
