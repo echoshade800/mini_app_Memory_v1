@@ -142,6 +142,19 @@ hooks/
 - `npm run build:web`: Build for web deployment
 - `npm run lint`: Run ESLint checks
 
+## 🔧 Troubleshooting
+
+If you encounter version compatibility issues or red screens in Expo Go:
+
+```bash
+rm -rf node_modules package-lock.json yarn.lock pnpm-lock.yaml
+npm i
+npx expo install
+npx expo start -c
+```
+
+**Note**: If you see a version mismatch warning in Expo Go, make sure to update the Expo Go app to the latest version from your device's app store.
+
 ## 📄 License
 
 © 2025 Memory Game. All rights reserved.
