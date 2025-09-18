@@ -82,9 +82,9 @@ export function calculateTotalScore(levelId, pairs, attempts, durationSec, combo
   const combo = calculateComboScore(levelId, pairs, comboSegments);
   const time = calculateTimeScore(levelId, pairs, durationSec);
   
-  // Calculate max possible scores for each category
+  // 计算各项满分
   const maxPerformanceScore = 10 * levelId;
-  const maxComboScore = pairs * 10; // Max combo score = pairs * 10
+  const maxComboScore = pairs * 10; // 连击满分 = 总对数 * 10（完美连击所有配对）
   const maxTimeScore = 10 * levelId;
   
   const total = Math.min(TOTAL, perf + combo + time);
@@ -120,13 +120,18 @@ function clamp(value, min, max) {
  * @returns {Array} Array of combo segment lengths
  */
 export function calculateComboSegments(matchHistory) {
+  // 从配对历史中计算连击段
+  // matchHistory: [true, false, true, true] 表示 成功-失败-成功-成功
+  // 返回连击段长度数组，如 [1, 2] 表示第一段连击1次，第二段连击2次
   const segments = [];
   let currentSegment = 0;
   
   for (const isCorrect of matchHistory) {
     if (isCorrect) {
+      // 成功配对，当前连击段长度+1
       currentSegment++;
     } else {
+      // 配对失败，连击中断
       if (currentSegment > 0) {
         segments.push(currentSegment);
         currentSegment = 0;
@@ -134,6 +139,7 @@ export function calculateComboSegments(matchHistory) {
     }
   }
   
+  // 处理最后一个连击段（如果游戏以成功配对结束）
   if (currentSegment > 0) {
     segments.push(currentSegment);
   }
