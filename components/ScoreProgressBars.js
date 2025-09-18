@@ -53,6 +53,7 @@ export default function ScoreProgressBars({
         });
       });
               toValue: scoreData.time / maxTimeScore,
+    }
 
     // Start animations after a short delay
     setTimeout(animateProgressBars, 500);
