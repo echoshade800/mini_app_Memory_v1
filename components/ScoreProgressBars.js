@@ -18,7 +18,7 @@ export default function ScoreProgressBars({
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Use the actual max scores from scoreData
-  const maxPerformanceScore = scoreData.maxPerformanceScore || 10 * levelId;
+  const maxAccuracyScore = scoreData.maxAccuracyScore || 10 * levelId;
   const maxComboScore = scoreData.maxComboScore || 10 * levelId;
   const maxTimeScore = scoreData.maxTimeScore || 10 * levelId;
   const isLastLevel = levelId === 25;
@@ -33,9 +33,9 @@ export default function ScoreProgressBars({
 
     // Animate progress bars sequentially
     const animateProgressBars = () => {
-      // Performance bar (yellow)
+      // Accuracy bar (yellow)
       Animated.timing(performanceAnim, {
-        toValue: scoreData.performance / maxPerformanceScore,
+        toValue: (scoreData.accuracy || 0) / maxAccuracyScore,
         duration: 1000,
         useNativeDriver: false,
       }).start(() => {
@@ -57,11 +57,11 @@ export default function ScoreProgressBars({
 
     // Start animations after a short delay
     setTimeout(animateProgressBars, 500);
-  }, [scoreData, maxPerformanceScore, maxComboScore, maxTimeScore]);
+  }, [scoreData, maxAccuracyScore, maxComboScore, maxTimeScore]);
 
   const renderProgressBar = (label, score, maxScore, animatedValue, color) => {
     const percentage = Math.round((score / maxScore) * 100);
-    
+
     return (
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
@@ -76,11 +76,12 @@ export default function ScoreProgressBars({
                 }),
               },
             ]}
-          >
-            <Text style={styles.progressBarLabel}>{label}</Text>
-            <Text style={styles.progressBarPercentage}>{percentage}%</Text>
-            <Text style={styles.progressBarScore}>{score}/{maxScore}</Text>
-          </Animated.View>
+          />
+          <View pointerEvents="none" style={styles.progressBarOverlay}>
+            <Text style={[styles.progressBarText, styles.progressBarLabel]}>{label}</Text>
+            <Text style={[styles.progressBarText, styles.progressBarPercentage]}>{percentage}%</Text>
+            <Text style={[styles.progressBarText, styles.progressBarScore]}>{score}/{maxScore}</Text>
+          </View>
         </View>
       </View>
     );
@@ -98,9 +99,9 @@ export default function ScoreProgressBars({
 
         <View style={styles.progressBarsContainer}>
           {renderProgressBar(
-            'Performance',
-            scoreData.performance,
-            maxPerformanceScore,
+            'Accuracy',
+            scoreData.accuracy,
+            maxAccuracyScore,
             performanceAnim,
             '#F59E0B' // Yellow
           )}
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 50,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#1F2937',
     borderRadius: 25,
     overflow: 'hidden',
     position: 'relative',
@@ -197,35 +198,40 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 25,
+    minWidth: 0,
+  },
+  progressBarOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    justifyContent: 'space-between',
-    minWidth: 120, // Ensure minimum width for text visibility
+  },
+  progressBarText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   progressBarLabel: {
-    color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    width: '33%',
+    textAlign: 'left',
   },
   progressBarPercentage: {
-    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    width: '34%',
+    textAlign: 'center',
   },
   progressBarScore: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    width: '33%',
+    textAlign: 'right',
   },
   continueButton: {
     backgroundColor: '#3B82F6',

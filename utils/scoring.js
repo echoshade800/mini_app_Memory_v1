@@ -16,17 +16,16 @@ export function previewTimeSec(N) {
 }
 
 /**
- * Calculate performance score
+ * Calculate accuracy score (linear by accuracy)
  * @param {number} levelId - Level ID (1-based)
- * @param {number} pairs - Number of pairs (P)
+ * @param {number} successfulPairs - Number of successful pair matches
  * @param {number} attempts - Number of attempts (A)
- * @returns {number} Performance score
+ * @returns {number} Accuracy score
  */
-export function calculatePerformanceScore(levelId, pairs, attempts) {
+export function calculateAccuracyScore(levelId, successfulPairs, attempts) {
   const CAP = 10 * levelId;
-  const acc = pairs / attempts;
-  const perf = Math.round(CAP * clamp((acc - 0.5) / 0.5, 0, 1));
-  return perf;
+  const acc = attempts > 0 ? successfulPairs / attempts : 0;
+  return Math.round(CAP * acc);
 }
 
 /**
@@ -69,35 +68,35 @@ export function calculateTimeScore(levelId, pairs, durationSec) {
 /**
  * Calculate total score
  * @param {number} levelId - Level ID (1-based)
- * @param {number} pairs - Number of pairs
+ * @param {number} successfulPairs - Number of successful pair matches
  * @param {number} attempts - Number of attempts
  * @param {number} durationSec - Time taken in seconds
  * @param {Array} comboSegments - Array of combo segment lengths
  * @returns {Object} Score breakdown
  */
-export function calculateTotalScore(levelId, pairs, attempts, durationSec, comboSegments) {
+export function calculateTotalScore(levelId, successfulPairs, attempts, durationSec, comboSegments) {
   const TOTAL = 30 * levelId;
   
-  const perf = calculatePerformanceScore(levelId, pairs, attempts);
-  const combo = calculateComboScore(levelId, pairs, comboSegments);
-  const time = calculateTimeScore(levelId, pairs, durationSec);
+  const accuracy = calculateAccuracyScore(levelId, successfulPairs, attempts);
+  const combo = calculateComboScore(levelId, successfulPairs, comboSegments);
+  const time = calculateTimeScore(levelId, successfulPairs, durationSec);
   
   // 计算各项满分
-  const maxPerformanceScore = 10 * levelId;
-  const maxComboScore = pairs * 10; // 连击满分 = 总对数 * 10（完美连击所有配对）
+  const maxAccuracyScore = 10 * levelId;
+  const maxComboScore = successfulPairs * 10; // 连击满分 = 成功配对次数 * 10（完美连击所有配对）
   const maxTimeScore = 10 * levelId;
   
-  const total = Math.min(TOTAL, perf + combo + time);
+  const total = Math.min(TOTAL, accuracy + combo + time);
   const total_pct = Math.round(100 * total / TOTAL);
   
   return {
-    performance: perf,
+    accuracy,
     combo,
     time,
     total,
     totalPercent: total_pct,
     maxPossible: TOTAL,
-    maxPerformanceScore,
+    maxAccuracyScore,
     maxComboScore,
     maxTimeScore
   };

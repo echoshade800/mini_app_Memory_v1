@@ -175,7 +175,7 @@ export default function LevelDetailsScreen() {
             <View style={styles.noStatsContent}>
               <Ionicons name="play-circle-outline" size={48} color="#9CA3AF" />
               <Text style={styles.noStatsText}>Not played yet</Text>
-              <Text style={styles.noStatsSubtext}>Complete this level to see your performance</Text>
+              <Text style={styles.noStatsSubtext}>Complete this level to see your accuracy</Text>
             </View>
           )}
         </View>

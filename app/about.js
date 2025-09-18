@@ -88,7 +88,7 @@ export default function AboutScreen() {
           </View>
           <View style={styles.featureItem}>
             <Ionicons name="trending-up" size={20} color="#10B981" />
-            <Text style={styles.featureText}>Advanced scoring system with performance tracking</Text>
+            <Text style={styles.featureText}>Advanced scoring system with accuracy tracking</Text>
           </View>
           <View style={styles.featureItem}>
             <Ionicons name="color-palette" size={20} color="#8B5CF6" />

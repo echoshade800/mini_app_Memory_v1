@@ -100,9 +100,9 @@ hooks/
 
 ## 📊 Scoring System
 
-### Performance Score (0 - CAP)
+### Accuracy Score (0 - CAP)
 - Based on accuracy: correct matches / total attempts
-- Higher accuracy = higher performance score
+- Higher accuracy = higher accuracy score
 
 ### Combo Score (0 - CAP) 
 - Rewards consecutive matches without mistakes
@@ -121,7 +121,7 @@ hooks/
 
 1. **Remote Saves & Accounts**: Add user authentication and cloud synchronization
 2. **Level Editor & Daily Challenges**: Allow custom levels and daily content
-3. **Adaptive Difficulty**: Dynamic timing based on player performance
+3. **Adaptive Difficulty**: Dynamic timing based on player accuracy
 4. **Advanced Filters & Stats Dashboard**: Enhanced level browsing and analytics
 5. **Rich Animations & Sound Effects**: Polished visual and audio feedback
 6. **Leaderboards & Social Features**: Global rankings and sharing

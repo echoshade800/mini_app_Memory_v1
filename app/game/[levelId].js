@@ -174,9 +174,10 @@ export default function GameScreen() {
     setGameState('completed');
     
     // Calculate final score
-    const pairs = level.cards / 2;
+    const totalPairs = level.cards / 2;
+    const successfulPairs = finalMatchHistory.filter(match => match).length; // 成功配对次数
     const comboSegments = calculateComboSegments(finalMatchHistory);
-    const finalScore = calculateTotalScore(level.id, pairs, attempts, timer, comboSegments);
+    const finalScore = calculateTotalScore(level.id, successfulPairs, attempts, timer, comboSegments);
     
     // Store score data for animation
     setFinalScoreData(finalScore);
