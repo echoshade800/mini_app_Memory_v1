@@ -78,24 +78,6 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.statItem}>
-            <Ionicons name="star" size={24} color="#10B981" />
-            <View style={styles.statText}>
-              <Text style={styles.statValue}>{gameData.maxScore}</Text>
-              <Text style={styles.statLabel}>Best Score</Text>
-            </View>
-          </View>
-
-          <View style={styles.statItem}>
-            <Ionicons name="time" size={24} color="#8B5CF6" />
-            <View style={styles.statText}>
-              <Text style={styles.statValue}>
-                {gameData.bestTime === Infinity ? '--' : `${Math.round(gameData.bestTime)}s`}
-              </Text>
-              <Text style={styles.statLabel}>Best Time</Text>
-            </View>
-          </View>
-
-          <View style={styles.statItem}>
             <Ionicons name="pie-chart" size={24} color="#06B6D4" />
             <View style={styles.statText}>
               <Text style={styles.statValue}>{completionRate}%</Text>

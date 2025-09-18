@@ -49,13 +49,13 @@ const styles = StyleSheet.create({
   textRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
+    flex: 0,
+    marginRight: 16,
   },
   labelContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   count: {
     fontSize: 36,
@@ -64,11 +64,11 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   label: {
-    fontSize: 22,
-    lineHeight: 26,
+    fontSize: 20,
+    lineHeight: 24,
     fontWeight: '600',
     color: '#6B7280',
     flexShrink: 1, // prevent overflow on small screens
-    textAlign: 'center',
+    textAlign: 'left',
   },
 });
