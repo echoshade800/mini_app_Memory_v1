@@ -68,9 +68,9 @@ export default function GameHeader({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    paddingTop: 60,
+    paddingTop: 50,
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },

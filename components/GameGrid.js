@@ -22,8 +22,8 @@ export default function GameGrid({
   const cardMargin = 4;
   
   // Calculate available space considering UI components
-  const headerHeight = 160; // GameHeader + preview banner space
-  const bottomSafeArea = 100; // Bottom safe area and potential UI
+  const headerHeight = 140; // Reduced GameHeader + preview banner space
+  const bottomSafeArea = 120; // Increased bottom safe area for better spacing
   const availableHeight = screenHeight - headerHeight - bottomSafeArea;
   const availableWidth = screenWidth - (gridPadding * 2);
   
@@ -34,8 +34,8 @@ export default function GameGrid({
   // Use the smaller of the two to ensure cards fit in both dimensions
   const cardSize = Math.min(cardSizeByWidth, cardSizeByHeight);
   
-  // Ensure minimum card size for usability
-  const finalCardSize = Math.max(cardSize, 60);
+  // Ensure minimum card size for usability, but also set a maximum to prevent oversized cards
+  const finalCardSize = Math.max(Math.min(cardSize, 120), 50);
 
   const renderCard = (card, index) => {
     const isFlipped = flippedCards.includes(index) || matchedCards.includes(index);
@@ -83,9 +83,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
+    paddingBottom: 20, // Add bottom padding to prevent cutoff
   },
   grid: {
     alignItems: 'center',
+    maxHeight: screenHeight * 0.65, // Increased slightly for better card visibility
+    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',

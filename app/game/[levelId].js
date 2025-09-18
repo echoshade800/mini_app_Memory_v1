@@ -144,7 +144,8 @@ export default function GameScreen() {
     const [first, second] = flippedIndices;
     const isMatch = cards[first].emoji === cards[second].emoji;
     
-    setMatchHistory(prev => [...prev, isMatch]);
+    const updatedMatchHistory = [...matchHistory, isMatch];
+    setMatchHistory(updatedMatchHistory);
 
     if (isMatch) {
       // Match found - add haptic feedback
@@ -158,7 +159,7 @@ export default function GameScreen() {
       
       // Check if game is complete
       if (newMatchedCards.length === level.cards) {
-        completeGame();
+        completeGame(updatedMatchHistory);
       }
     } else {
       // No match - flip cards back after delay
@@ -168,13 +169,13 @@ export default function GameScreen() {
     }
   };
 
-  const completeGame = () => {
+  const completeGame = (finalMatchHistory = matchHistory) => {
     clearInterval(timerRef.current);
     setGameState('completed');
     
     // Calculate final score
     const pairs = level.cards / 2;
-    const comboSegments = calculateComboSegments(matchHistory);
+    const comboSegments = calculateComboSegments(finalMatchHistory);
     const finalScore = calculateTotalScore(level.id, pairs, attempts, timer, comboSegments);
     
     // Store score data for animation
@@ -311,17 +312,17 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 12,
     backgroundColor: '#FEF3C7',
     marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 8,
     borderRadius: 12,
   },
   previewTimer: {
-    fontSize: 48,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#D97706',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   previewText: {
     fontSize: 16,
