@@ -17,9 +17,7 @@ export default function ScoreProgressBars({
   const timeAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const maxPerformanceScore = 10 * levelId;
-  const maxTimeScore = 10 * levelId;
-  const maxComboScore = scoreData.maxCombo || (levelId * 10); // Use actual max combo or fallback
+  const maxScore = 10 * levelId; // Each category max score
   const isLastLevel = levelId === 25;
 
   useEffect(() => {
@@ -40,23 +38,23 @@ export default function ScoreProgressBars({
       }).start(() => {
         // Combo bar (green)
         Animated.timing(comboAnim, {
-          toValue: scoreData.performance / maxPerformanceScore,
+          toValue: scoreData.combo / maxScore,
           duration: 1000,
           useNativeDriver: false,
         }).start(() => {
           // Time bar (blue)
           Animated.timing(timeAnim, {
-            toValue: scoreData.combo / maxComboScore,
+            toValue: scoreData.time / maxScore,
             duration: 1000,
             useNativeDriver: false,
           }).start();
         });
       });
-      };
+    };
 
     // Start animations after a short delay
     setTimeout(animateProgressBars, 500);
-  }, [scoreData, levelId]);
+  }, [scoreData, maxScore]);
 
   const renderProgressBar = (label, score, maxScore, animatedValue, color) => {
     const percentage = Math.round((score / maxScore) * 100);
@@ -99,7 +97,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Performance',
             scoreData.performance,
-            maxPerformanceScore,
+            maxScore,
             performanceAnim,
             '#F59E0B' // Yellow
           )}
@@ -107,7 +105,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Combo',
             scoreData.combo,
-            maxComboScore,
+            maxScore,
             comboAnim,
             '#10B981' // Green
           )}
@@ -115,7 +113,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Time',
             scoreData.time,
-            maxTimeScore,
+            maxScore,
             timeAnim,
             '#EF4444' // Red
           )}
