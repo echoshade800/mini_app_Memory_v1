@@ -33,38 +33,21 @@ export function calculatePerformanceScore(levelId, pairs, attempts) {
  * Calculate combo score
  * @param {number} levelId - Level ID (1-based)
  * @param {number} pairs - Number of pairs (P)
- * @param {Array} comboSegments - Array of combo segment lengths
+ * @param {Array} comboSegments - Array of combo segment lengths (successful matches in each streak)
  * @returns {number} Combo score
  */
 export function calculateComboScore(levelId, pairs, comboSegments) {
-  const CAP = 10 * levelId;
+  // New simple combo calculation:
+  // Combo score = max streak length * 10
+  // Max possible = pairs * 10 (when all pairs matched in one streak)
   
-  // Debug logging
-  console.log('calculateComboScore - levelId:', levelId, 'pairs:', pairs, 'comboSegments:', comboSegments);
+  const maxStreak = comboSegments.length > 0 ? Math.max(...comboSegments) : 0;
+  const comboScore = maxStreak * 10;
+  const maxPossible = pairs * 10;
   
-  // Special case: For levels with P = 1 pair, award full combo = CAP(L) 
-  // as soon as the single pair is matched
-  if (pairs === 1) {
-    // If there's any successful match and no failures, give full combo
-    const hasSuccess = comboSegments.length > 0 && comboSegments[0] >= 1;
-    const result = hasSuccess ? CAP : 0;
-    console.log('P=1 special case - hasSuccess:', hasSuccess, 'result:', result);
-    return result;
-  }
+  console.log('Combo calculation - pairs:', pairs, 'comboSegments:', comboSegments, 'maxStreak:', maxStreak, 'comboScore:', comboScore, 'maxPossible:', maxPossible);
   
-  // For P ≥ 2, keep the weighted streak rule
-  // New weighted combo calculation
-  // W(s) = s * (s - 1) / 2 for streak length s
-  const W = (s) => s * (s - 1) / 2;
-  
-  const C_weighted = comboSegments.reduce((sum, segment) => sum + W(segment), 0);
-  const C_weighted_max = W(pairs); // theoretical max when entire game is single streak
-  const combo = Math.round(CAP * C_weighted / Math.max(1, C_weighted_max));
-  
-  console.log('P>=2 calculation - W function results:', comboSegments.map(s => `W(${s})=${W(s)}`));
-  console.log('C_weighted:', C_weighted, 'C_weighted_max:', C_weighted_max, 'combo:', combo);
-  
-  return combo;
+  return comboScore;
 }
 
 /**
@@ -110,13 +93,17 @@ export function calculateTotalScore(levelId, pairs, attempts, durationSec, combo
   const total = Math.min(TOTAL, perf + combo + time);
   const total_pct = Math.round(100 * total / TOTAL);
   
+  // Calculate max possible for each component
+  const maxCombo = pairs * 10;
+  
   return {
     performance: perf,
     combo,
     time,
     total,
     totalPercent: total_pct,
-    maxPossible: TOTAL
+    maxPossible: TOTAL,
+    maxCombo
   };
 }
 

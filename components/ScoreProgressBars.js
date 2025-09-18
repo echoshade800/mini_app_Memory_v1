@@ -17,7 +17,9 @@ export default function ScoreProgressBars({
   const timeAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const maxScore = 10 * levelId; // Each category max score
+  const maxPerformanceScore = 10 * levelId;
+  const maxTimeScore = 10 * levelId;
+  const maxComboScore = scoreData.maxCombo || (levelId * 10); // Use actual max combo or fallback
   const isLastLevel = levelId === 25;
 
   useEffect(() => {
@@ -38,19 +40,19 @@ export default function ScoreProgressBars({
       }).start(() => {
         // Combo bar (green)
         Animated.timing(comboAnim, {
-          toValue: scoreData.combo / maxScore,
+          toValue: scoreData.performance / maxPerformanceScore,
           duration: 1000,
           useNativeDriver: false,
         }).start(() => {
           // Time bar (blue)
           Animated.timing(timeAnim, {
-            toValue: scoreData.time / maxScore,
+            toValue: scoreData.combo / maxComboScore,
             duration: 1000,
             useNativeDriver: false,
           }).start();
         });
       });
-    };
+              toValue: scoreData.time / maxTimeScore,
 
     // Start animations after a short delay
     setTimeout(animateProgressBars, 500);
@@ -97,7 +99,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Performance',
             scoreData.performance,
-            maxScore,
+            maxPerformanceScore,
             performanceAnim,
             '#F59E0B' // Yellow
           )}
@@ -105,7 +107,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Combo',
             scoreData.combo,
-            maxScore,
+            maxComboScore,
             comboAnim,
             '#10B981' // Green
           )}
@@ -113,7 +115,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Time',
             scoreData.time,
-            maxScore,
+            maxTimeScore,
             timeAnim,
             '#EF4444' // Red
           )}
