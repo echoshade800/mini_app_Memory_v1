@@ -39,6 +39,14 @@ export function calculatePerformanceScore(levelId, pairs, attempts) {
 export function calculateComboScore(levelId, pairs, comboSegments) {
   const CAP = 10 * levelId;
   
+  // Special case: For levels with P = 1 pair, award full combo = CAP(L) 
+  // as soon as the single pair is matched
+  if (pairs === 1) {
+    // If there's any successful match (comboSegments has any segment), give full combo
+    return comboSegments.length > 0 ? CAP : 0;
+  }
+  
+  // For P ≥ 2, keep the weighted streak rule
   // New weighted combo calculation
   // W(s) = s * (s - 1) / 2 for streak length s
   const W = (s) => s * (s - 1) / 2;
