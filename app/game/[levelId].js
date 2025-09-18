@@ -159,7 +159,8 @@ export default function GameScreen() {
       
       // Check if game is complete
       if (newMatchedCards.length === level.cards) {
-        completeGame(updatedMatchHistory);
+        // Pass the current attempts + 1 since we just made an attempt
+        completeGame(updatedMatchHistory, attempts + 1);
       }
     } else {
       // No match - flip cards back after delay
@@ -169,15 +170,14 @@ export default function GameScreen() {
     }
   };
 
-  const completeGame = (finalMatchHistory = matchHistory) => {
+  const completeGame = (finalMatchHistory = matchHistory, finalAttempts = attempts) => {
     clearInterval(timerRef.current);
     setGameState('completed');
     
     // Calculate final score
-    const totalPairs = level.cards / 2;
-    const successfulAttempts = finalMatchHistory.filter(match => match).length; // 成功尝试次数
+    const totalPairs = level.cards / 2; // 当局总对数
     const comboSegments = calculateComboSegments(finalMatchHistory);
-    const finalScore = calculateTotalScore(level.id, successfulAttempts, attempts, timer, comboSegments);
+    const finalScore = calculateTotalScore(level.id, totalPairs, finalAttempts, timer, comboSegments);
     
     // Store score data for animation
     setFinalScoreData(finalScore);

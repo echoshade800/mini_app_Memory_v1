@@ -18,43 +18,45 @@ export function previewTimeSec(N) {
 /**
  * Calculate accuracy score (linear by accuracy)
  * @param {number} levelId - Level ID (1-based)
- * @param {number} successfulAttempts - Number of successful attempts
- * @param {number} attempts - Number of total attempts
+ * @param {number} totalPairs - Total number of pairs in the level
+ * @param {number} attempts - Number of attempts (flipping 2 cards = 1 attempt)
  * @returns {number} Accuracy score
  */
-export function calculateAccuracyScore(levelId, successfulAttempts, attempts) {
-  const CAP = 10 * levelId;
-  const acc = attempts > 0 ? successfulAttempts / attempts : 0;
+export function calculateAccuracyScore(levelId, totalPairs, attempts) {
+  const CAP = totalPairs * 10; // CAP = 当局卡牌总对数 × 10
+  const acc = attempts > 0 ? totalPairs / attempts : 0;
   return Math.round(CAP * acc);
 }
 
 /**
  * Calculate combo score
  * @param {number} levelId - Level ID (1-based)
- * @param {number} pairs - Number of pairs (P)
+ * @param {number} totalPairs - Total number of pairs in the level
  * @param {Array} comboSegments - Array of combo segment lengths
  * @returns {number} Combo score
  */
-export function calculateComboScore(levelId, pairs, comboSegments) {
-  // 连击分数 = 当局最高连续配对成功次数 * 10
+export function calculateComboScore(levelId, totalPairs, comboSegments) {
+  // 连击分数 = (最高连续配对成功次数 / 当局总对数) × CAP
+  const CAP = totalPairs * 10; // CAP = 当局卡牌总对数 × 10
   const maxConsecutiveMatches = comboSegments.length > 0 ? Math.max(...comboSegments) : 0;
-  return maxConsecutiveMatches * 10;
+  const comboRatio = totalPairs > 0 ? maxConsecutiveMatches / totalPairs : 0;
+  return Math.round(CAP * comboRatio);
 }
 
 /**
  * Calculate time score
  * @param {number} levelId - Level ID (1-based)
- * @param {number} pairs - Number of pairs (P)
+ * @param {number} totalPairs - Total number of pairs in the level
  * @param {number} durationSec - Time taken in seconds
  * @returns {number} Time score
  */
-export function calculateTimeScore(levelId, pairs, durationSec) {
-  const CAP = 10 * levelId;
+export function calculateTimeScore(levelId, totalPairs, durationSec) {
+  const CAP = totalPairs * 10; // CAP = 当局卡牌总对数 × 10
   const g = 3.0; // gold time multiplier
   const b = 6.0; // bronze time multiplier
   
-  const T_gold = g * pairs;
-  const T_bronze = b * pairs;
+  const T_gold = g * totalPairs;
+  const T_bronze = b * totalPairs;
   
   if (durationSec <= T_gold) {
     return CAP;
@@ -68,26 +70,22 @@ export function calculateTimeScore(levelId, pairs, durationSec) {
 /**
  * Calculate total score
  * @param {number} levelId - Level ID (1-based)
- * @param {number} successfulAttempts - Number of successful attempts
- * @param {number} attempts - Number of total attempts
+ * @param {number} totalPairs - Total number of pairs in the level
+ * @param {number} attempts - Number of attempts
  * @param {number} durationSec - Time taken in seconds
  * @param {Array} comboSegments - Array of combo segment lengths
  * @returns {Object} Score breakdown
  */
-export function calculateTotalScore(levelId, successfulAttempts, attempts, durationSec, comboSegments) {
-  const TOTAL = 30 * levelId;
+export function calculateTotalScore(levelId, totalPairs, attempts, durationSec, comboSegments) {
+  const CAP = totalPairs * 10; // CAP = 当局卡牌总对数 × 10
   
-  const accuracy = calculateAccuracyScore(levelId, successfulAttempts, attempts);
-  const combo = calculateComboScore(levelId, successfulAttempts, comboSegments);
-  const time = calculateTimeScore(levelId, successfulAttempts, durationSec);
+  const accuracy = calculateAccuracyScore(levelId, totalPairs, attempts);
+  const combo = calculateComboScore(levelId, totalPairs, comboSegments);
+  const time = calculateTimeScore(levelId, totalPairs, durationSec);
   
-  // 计算各项满分
-  const maxAccuracyScore = 10 * levelId;
-  const maxComboScore = successfulAttempts * 10; // 连击满分 = 成功尝试次数 * 10（完美连击所有配对）
-  const maxTimeScore = 10 * levelId;
-  
-  const total = Math.min(TOTAL, accuracy + combo + time);
-  const total_pct = Math.round(100 * total / TOTAL);
+  // 计算总分
+  const total = accuracy + combo + time;
+  const total_pct = Math.round(100 * total / (CAP * 3));
   
   return {
     accuracy,
@@ -95,10 +93,10 @@ export function calculateTotalScore(levelId, successfulAttempts, attempts, durat
     time,
     total,
     totalPercent: total_pct,
-    maxPossible: TOTAL,
-    maxAccuracyScore,
-    maxComboScore,
-    maxTimeScore
+    maxPossible: CAP * 3,
+    maxAccuracyScore: CAP,
+    maxComboScore: CAP,
+    maxTimeScore: CAP
   };
 }
 
