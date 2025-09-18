@@ -37,9 +37,16 @@ export function calculatePerformanceScore(levelId, pairs, attempts) {
  * @returns {number} Combo score
  */
 export function calculateComboScore(levelId, pairs, comboSegments) {
-  // New simple combo calculation: max combo segment length * 10
-  const maxComboSegment = comboSegments.length > 0 ? Math.max(...comboSegments) : 0;
-  return maxComboSegment * 10;
+  const CAP = 10 * levelId;
+  
+  // New weighted combo calculation
+  // W(s) = s * (s - 1) / 2 for streak length s
+  const W = (s) => s * (s - 1) / 2;
+  
+  const C_weighted = comboSegments.reduce((sum, segment) => sum + W(segment), 0);
+  const C_weighted_max = W(pairs); // theoretical max when entire game is single streak
+  const combo = Math.round(CAP * C_weighted / Math.max(1, C_weighted_max));
+  return combo;
 }
 
 /**
@@ -91,8 +98,7 @@ export function calculateTotalScore(levelId, pairs, attempts, durationSec, combo
     time,
     total,
     totalPercent: total_pct,
-    maxPossible: TOTAL,
-    maxComboScore: pairs * 10 // Max combo score for this level
+    maxPossible: TOTAL
   };
 }
 
