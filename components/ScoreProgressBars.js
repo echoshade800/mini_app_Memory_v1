@@ -17,7 +17,9 @@ export default function ScoreProgressBars({
   const timeAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const maxScore = 10 * levelId; // Each category max score
+  const maxPerformanceScore = 10 * levelId;
+  const maxComboScore = scoreData.maxComboScore || (levelId * 10); // Use provided max or fallback
+  const maxTimeScore = 10 * levelId;
   const isLastLevel = levelId === 25;
 
   useEffect(() => {
@@ -32,19 +34,19 @@ export default function ScoreProgressBars({
     const animateProgressBars = () => {
       // Performance bar (yellow)
       Animated.timing(performanceAnim, {
-        toValue: scoreData.performance / maxScore,
+        toValue: scoreData.performance / maxPerformanceScore,
         duration: 1000,
         useNativeDriver: false,
       }).start(() => {
         // Combo bar (green)
         Animated.timing(comboAnim, {
-          toValue: scoreData.combo / maxScore,
+          toValue: scoreData.combo / maxComboScore,
           duration: 1000,
           useNativeDriver: false,
         }).start(() => {
           // Time bar (blue)
           Animated.timing(timeAnim, {
-            toValue: scoreData.time / maxScore,
+            toValue: scoreData.time / maxTimeScore,
             duration: 1000,
             useNativeDriver: false,
           }).start();
@@ -54,7 +56,7 @@ export default function ScoreProgressBars({
 
     // Start animations after a short delay
     setTimeout(animateProgressBars, 500);
-  }, [scoreData, maxScore]);
+  }, [scoreData, levelId]);
 
   const renderProgressBar = (label, score, maxScore, animatedValue, color) => {
     const percentage = Math.round((score / maxScore) * 100);
@@ -97,7 +99,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Performance',
             scoreData.performance,
-            maxScore,
+            maxPerformanceScore,
             performanceAnim,
             '#F59E0B' // Yellow
           )}
@@ -105,7 +107,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Combo',
             scoreData.combo,
-            maxScore,
+            maxComboScore,
             comboAnim,
             '#10B981' // Green
           )}
@@ -113,7 +115,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Time',
             scoreData.time,
-            maxScore,
+            maxTimeScore,
             timeAnim,
             '#EF4444' // Red
           )}
