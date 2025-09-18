@@ -27,7 +27,7 @@ const ONBOARDING_SLIDES = [
   },
   {
     title: 'Scoring System',
-    subtitle: 'Performance, combo, and time matter',
+    subtitle: 'Accuracy, combo, and time matter',
     icon: '⭐',
     content: 'Earn points based on your accuracy, consecutive matches, and completion time. The faster and more accurate you are, the higher your score!'
   },
