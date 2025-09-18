@@ -18,13 +18,13 @@ export function previewTimeSec(N) {
 /**
  * Calculate accuracy score (linear by accuracy)
  * @param {number} levelId - Level ID (1-based)
- * @param {number} successfulPairs - Number of successful pair matches
- * @param {number} attempts - Number of attempts (A)
+ * @param {number} successfulAttempts - Number of successful attempts
+ * @param {number} attempts - Number of total attempts
  * @returns {number} Accuracy score
  */
-export function calculateAccuracyScore(levelId, successfulPairs, attempts) {
+export function calculateAccuracyScore(levelId, successfulAttempts, attempts) {
   const CAP = 10 * levelId;
-  const acc = attempts > 0 ? successfulPairs / attempts : 0;
+  const acc = attempts > 0 ? successfulAttempts / attempts : 0;
   return Math.round(CAP * acc);
 }
 
@@ -68,22 +68,22 @@ export function calculateTimeScore(levelId, pairs, durationSec) {
 /**
  * Calculate total score
  * @param {number} levelId - Level ID (1-based)
- * @param {number} successfulPairs - Number of successful pair matches
- * @param {number} attempts - Number of attempts
+ * @param {number} successfulAttempts - Number of successful attempts
+ * @param {number} attempts - Number of total attempts
  * @param {number} durationSec - Time taken in seconds
  * @param {Array} comboSegments - Array of combo segment lengths
  * @returns {Object} Score breakdown
  */
-export function calculateTotalScore(levelId, successfulPairs, attempts, durationSec, comboSegments) {
+export function calculateTotalScore(levelId, successfulAttempts, attempts, durationSec, comboSegments) {
   const TOTAL = 30 * levelId;
   
-  const accuracy = calculateAccuracyScore(levelId, successfulPairs, attempts);
-  const combo = calculateComboScore(levelId, successfulPairs, comboSegments);
-  const time = calculateTimeScore(levelId, successfulPairs, durationSec);
+  const accuracy = calculateAccuracyScore(levelId, successfulAttempts, attempts);
+  const combo = calculateComboScore(levelId, successfulAttempts, comboSegments);
+  const time = calculateTimeScore(levelId, successfulAttempts, durationSec);
   
   // 计算各项满分
   const maxAccuracyScore = 10 * levelId;
-  const maxComboScore = successfulPairs * 10; // 连击满分 = 成功配对次数 * 10（完美连击所有配对）
+  const maxComboScore = successfulAttempts * 10; // 连击满分 = 成功尝试次数 * 10（完美连击所有配对）
   const maxTimeScore = 10 * levelId;
   
   const total = Math.min(TOTAL, accuracy + combo + time);
