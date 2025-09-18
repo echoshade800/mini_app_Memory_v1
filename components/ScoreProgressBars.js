@@ -115,7 +115,7 @@ export default function ScoreProgressBars({
             scoreData.time,
             maxScore,
             timeAnim,
-            '#3B82F6' // Blue
+            '#EF4444' // Red
           )}
         </View>
 
