@@ -39,15 +39,13 @@ export function calculatePerformanceScore(levelId, pairs, attempts) {
 export function calculateComboScore(levelId, pairs, comboSegments) {
   const CAP = 10 * levelId;
   
-  // 如果只有一个连击段且等于总对数，说明完美通关
-  if (comboSegments.length === 1 && comboSegments[0] === pairs) {
-    return CAP; // 完美通关获得满分
-  }
+  // New weighted combo calculation
+  // W(s) = s * (s - 1) / 2 for streak length s
+  const W = (s) => s * (s - 1) / 2;
   
-  // 原有计算逻辑
-  const C_raw = comboSegments.reduce((sum, segment) => sum + Math.max(0, segment - 1), 0);
-  const C_raw_max = Math.max(0, pairs - 1);
-  const combo = Math.round(CAP * C_raw / Math.max(1, C_raw_max));
+  const C_weighted = comboSegments.reduce((sum, segment) => sum + W(segment), 0);
+  const C_weighted_max = W(pairs); // theoretical max when entire game is single streak
+  const combo = Math.round(CAP * C_weighted / Math.max(1, C_weighted_max));
   return combo;
 }
 
