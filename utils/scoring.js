@@ -37,16 +37,9 @@ export function calculatePerformanceScore(levelId, pairs, attempts) {
  * @returns {number} Combo score
  */
 export function calculateComboScore(levelId, pairs, comboSegments) {
-  const CAP = 10 * levelId;
-  
-  // New weighted combo calculation
-  // W(s) = s * (s - 1) / 2 for streak length s
-  const W = (s) => s * (s - 1) / 2;
-  
-  const C_weighted = comboSegments.reduce((sum, segment) => sum + W(segment), 0);
-  const C_weighted_max = W(pairs); // theoretical max when entire game is single streak
-  const combo = Math.round(CAP * C_weighted / Math.max(1, C_weighted_max));
-  return combo;
+  // New simple combo calculation: max combo segment * 10
+  const maxComboSegment = comboSegments.length > 0 ? Math.max(...comboSegments) : 0;
+  return maxComboSegment * 10;
 }
 
 /**
@@ -89,6 +82,11 @@ export function calculateTotalScore(levelId, pairs, attempts, durationSec, combo
   const combo = calculateComboScore(levelId, pairs, comboSegments);
   const time = calculateTimeScore(levelId, pairs, durationSec);
   
+  // Calculate max possible scores for each category
+  const maxPerformanceScore = 10 * levelId;
+  const maxComboScore = pairs * 10; // Max combo score = pairs * 10
+  const maxTimeScore = 10 * levelId;
+  
   const total = Math.min(TOTAL, perf + combo + time);
   const total_pct = Math.round(100 * total / TOTAL);
   
@@ -98,7 +96,10 @@ export function calculateTotalScore(levelId, pairs, attempts, durationSec, combo
     time,
     total,
     totalPercent: total_pct,
-    maxPossible: TOTAL
+    maxPossible: TOTAL,
+    maxPerformanceScore,
+    maxComboScore,
+    maxTimeScore
   };
 }
 

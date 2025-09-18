@@ -17,7 +17,10 @@ export default function ScoreProgressBars({
   const timeAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const maxScore = 10 * levelId; // Each category max score
+  // Use the actual max scores from scoreData
+  const maxPerformanceScore = scoreData.maxPerformanceScore || 10 * levelId;
+  const maxComboScore = scoreData.maxComboScore || 10 * levelId;
+  const maxTimeScore = scoreData.maxTimeScore || 10 * levelId;
   const isLastLevel = levelId === 25;
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Performance',
             scoreData.performance,
-            maxScore,
+            maxPerformanceScore,
             performanceAnim,
             '#F59E0B' // Yellow
           )}
@@ -105,7 +108,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Combo',
             scoreData.combo,
-            maxScore,
+            maxComboScore,
             comboAnim,
             '#10B981' // Green
           )}
@@ -113,7 +116,7 @@ export default function ScoreProgressBars({
           {renderProgressBar(
             'Time',
             scoreData.time,
-            maxScore,
+            maxTimeScore,
             timeAnim,
             '#EF4444' // Red
           )}
