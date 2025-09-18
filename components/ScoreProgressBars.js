@@ -35,19 +35,19 @@ export default function ScoreProgressBars({
     const animateProgressBars = () => {
       // Performance bar (yellow)
       Animated.timing(performanceAnim, {
-        toValue: scoreData.performance / maxScore,
+        toValue: scoreData.performance / maxPerformanceScore,
         duration: 1000,
         useNativeDriver: false,
       }).start(() => {
         // Combo bar (green)
         Animated.timing(comboAnim, {
-          toValue: scoreData.combo / maxScore,
+          toValue: scoreData.combo / maxComboScore,
           duration: 1000,
           useNativeDriver: false,
         }).start(() => {
           // Time bar (blue)
           Animated.timing(timeAnim, {
-            toValue: scoreData.time / maxScore,
+            toValue: scoreData.time / maxTimeScore,
             duration: 1000,
             useNativeDriver: false,
           }).start();
@@ -57,7 +57,7 @@ export default function ScoreProgressBars({
 
     // Start animations after a short delay
     setTimeout(animateProgressBars, 500);
-  }, [scoreData, maxScore]);
+  }, [scoreData, maxPerformanceScore, maxComboScore, maxTimeScore]);
 
   const renderProgressBar = (label, score, maxScore, animatedValue, color) => {
     const percentage = Math.round((score / maxScore) * 100);
