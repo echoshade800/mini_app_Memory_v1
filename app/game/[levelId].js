@@ -175,6 +175,10 @@ export default function GameScreen() {
     // Calculate final score
     const pairs = level.cards / 2;
     const comboSegments = calculateComboSegments(matchHistory);
+    
+    // Debug logging
+    console.log('Level:', level.id, 'Pairs:', pairs, 'Attempts:', attempts, 'MatchHistory:', matchHistory, 'ComboSegments:', comboSegments);
+    
     const finalScore = calculateTotalScore(level.id, pairs, attempts, timer, comboSegments);
     
     // Store score data for animation

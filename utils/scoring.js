@@ -39,11 +39,17 @@ export function calculatePerformanceScore(levelId, pairs, attempts) {
 export function calculateComboScore(levelId, pairs, comboSegments) {
   const CAP = 10 * levelId;
   
+  // Debug logging
+  console.log('calculateComboScore - levelId:', levelId, 'pairs:', pairs, 'comboSegments:', comboSegments);
+  
   // Special case: For levels with P = 1 pair, award full combo = CAP(L) 
   // as soon as the single pair is matched
   if (pairs === 1) {
-    // If there's any successful match (comboSegments has any segment), give full combo
-    return comboSegments.length > 0 ? CAP : 0;
+    // If there's any successful match and no failures, give full combo
+    const hasSuccess = comboSegments.length > 0 && comboSegments[0] >= 1;
+    const result = hasSuccess ? CAP : 0;
+    console.log('P=1 special case - hasSuccess:', hasSuccess, 'result:', result);
+    return result;
   }
   
   // For P ≥ 2, keep the weighted streak rule
@@ -54,6 +60,10 @@ export function calculateComboScore(levelId, pairs, comboSegments) {
   const C_weighted = comboSegments.reduce((sum, segment) => sum + W(segment), 0);
   const C_weighted_max = W(pairs); // theoretical max when entire game is single streak
   const combo = Math.round(CAP * C_weighted / Math.max(1, C_weighted_max));
+  
+  console.log('P>=2 calculation - W function results:', comboSegments.map(s => `W(${s})=${W(s)}`));
+  console.log('C_weighted:', C_weighted, 'C_weighted_max:', C_weighted_max, 'combo:', combo);
+  
   return combo;
 }
 
