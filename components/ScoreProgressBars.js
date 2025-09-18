@@ -52,12 +52,11 @@ export default function ScoreProgressBars({
           }).start();
         });
       });
-              toValue: scoreData.time / maxTimeScore,
-    }
+      };
 
     // Start animations after a short delay
     setTimeout(animateProgressBars, 500);
-  }, [scoreData, maxScore]);
+  }, [scoreData, levelId]);
 
   const renderProgressBar = (label, score, maxScore, animatedValue, color) => {
     const percentage = Math.round((score / maxScore) * 100);
