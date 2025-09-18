@@ -9,16 +9,10 @@ export default function useBootstrap() {
   const { initialize, isLoading, error } = useGameStore();
 
   useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        await initialize();
-      } catch (err) {
-        // Error is already handled by the store
-        console.error('Initialization error:', err);
-      }
-    };
-    
-    initializeApp();
+    initialize().catch((err) => {
+      // Error is already handled by the store
+      console.error('Initialization error:', err);
+    });
   }, []);
 
   return { isLoading, error };
