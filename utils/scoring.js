@@ -37,9 +37,9 @@ export function calculatePerformanceScore(levelId, pairs, attempts) {
  * @returns {number} Combo score
  */
 export function calculateComboScore(levelId, pairs, comboSegments) {
-  // New simple combo calculation: max combo segment * 10
-  const maxComboSegment = comboSegments.length > 0 ? Math.max(...comboSegments) : 0;
-  return maxComboSegment * 10;
+  // 连击分数 = 当局最高连续配对成功次数 * 10
+  const maxConsecutiveMatches = comboSegments.length > 0 ? Math.max(...comboSegments) : 0;
+  return maxConsecutiveMatches * 10;
 }
 
 /**
@@ -120,18 +120,18 @@ function clamp(value, min, max) {
  * @returns {Array} Array of combo segment lengths
  */
 export function calculateComboSegments(matchHistory) {
-  // 从配对历史中计算连击段
-  // matchHistory: [true, false, true, true] 表示 成功-失败-成功-成功
-  // 返回连击段长度数组，如 [1, 2] 表示第一段连击1次，第二段连击2次
+  // 从配对历史中计算所有连击段
+  // matchHistory: [true, false, true, true] 表示 成功配对-配对失败-成功配对-成功配对
+  // 返回连击段长度数组，如 [1, 2] 表示第一段连击1次成功配对，第二段连击2次成功配对
   const segments = [];
   let currentSegment = 0;
   
   for (const isCorrect of matchHistory) {
     if (isCorrect) {
-      // 成功配对，当前连击段长度+1
+      // 成功配对，当前连击段中的连续成功配对次数+1
       currentSegment++;
     } else {
-      // 配对失败，连击中断
+      // 配对失败，连击中断，记录当前连击段
       if (currentSegment > 0) {
         segments.push(currentSegment);
         currentSegment = 0;
@@ -139,7 +139,7 @@ export function calculateComboSegments(matchHistory) {
     }
   }
   
-  // 处理最后一个连击段（如果游戏以成功配对结束）
+  // 处理最后一个连击段（如果游戏以连续成功配对结束）
   if (currentSegment > 0) {
     segments.push(currentSegment);
   }
