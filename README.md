@@ -53,9 +53,7 @@ app/
 ├── (tabs)/                 # Tab navigation screens
 │   ├── index.js           # Home dashboard
 │   ├── levels.js          # Levels browser
-│   ├── new-run.js         # New game setup
 │   └── profile.js         # User profile & settings
-├── details/[id].js        # Level details screen
 ├── game/[levelId].js      # Main gameplay screen
 ├── onboarding.js          # Tutorial & welcome
 └── about.js               # About & help

@@ -12,9 +12,8 @@ const useGameStore = create((set, get) => ({
   // Game progress
   gameData: {
     maxLevel: 1,
-    maxScore: 0,
-    bestTime: Infinity,
     scoresByLevel: {},
+    timesByLevel: {},
     seenTutorial: false,
     recentRuns: []
   },
@@ -31,16 +30,24 @@ const useGameStore = create((set, get) => ({
       const userData = await StorageUtils.getUserData();
       const gameData = await StorageUtils.getData();
       
+      // Ensure backward compatibility with old data structure
+      const processedGameData = gameData ? {
+        maxLevel: gameData.maxLevel || 1,
+        scoresByLevel: gameData.scoresByLevel || {},
+        timesByLevel: gameData.timesByLevel || {},
+        seenTutorial: gameData.seenTutorial || false,
+        recentRuns: gameData.recentRuns || []
+      } : {
+        maxLevel: 1,
+        scoresByLevel: {},
+        timesByLevel: {},
+        seenTutorial: false,
+        recentRuns: []
+      };
+      
       set({
         userData,
-        gameData: gameData || {
-          maxLevel: 1,
-          maxScore: 0,
-          bestTime: Infinity,
-          scoresByLevel: {},
-          seenTutorial: false,
-          recentRuns: []
-        },
+        gameData: processedGameData,
         isLoading: false
       });
     } catch (error) {
@@ -73,16 +80,6 @@ const useGameStore = create((set, get) => ({
     const currentData = get().gameData;
     const updates = {};
     
-    // Update max score if this is better
-    if (score.total > currentData.maxScore) {
-      updates.maxScore = score.total;
-    }
-    
-    // Update best time if this is better
-    if (durationSec < currentData.bestTime) {
-      updates.bestTime = durationSec;
-    }
-    
     // Update max level if this level unlocks the next
     if (levelId >= currentData.maxLevel && levelId < 25) {
       updates.maxLevel = levelId + 1;
@@ -94,6 +91,15 @@ const useGameStore = create((set, get) => ({
       updates.scoresByLevel = {
         ...currentData.scoresByLevel,
         [levelId]: score.total
+      };
+    }
+    
+    // Update per-level best time
+    const currentLevelBestTime = currentData.timesByLevel[levelId] || Infinity;
+    if (durationSec < currentLevelBestTime) {
+      updates.timesByLevel = {
+        ...currentData.timesByLevel,
+        [levelId]: durationSec
       };
     }
     
@@ -111,13 +117,18 @@ const useGameStore = create((set, get) => ({
     await get().updateProgress(updates);
   },
 
-  // Reset level best score
+  // Reset level best score and time
   resetLevelBest: async (levelId) => {
     const currentData = get().gameData;
     const newScoresByLevel = { ...currentData.scoresByLevel };
+    const newTimesByLevel = { ...currentData.timesByLevel };
     delete newScoresByLevel[levelId];
+    delete newTimesByLevel[levelId];
     
-    await get().updateProgress({ scoresByLevel: newScoresByLevel });
+    await get().updateProgress({ 
+      scoresByLevel: newScoresByLevel,
+      timesByLevel: newTimesByLevel
+    });
   },
 
   // Clear error

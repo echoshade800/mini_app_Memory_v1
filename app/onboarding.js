@@ -46,7 +46,8 @@ export default function OnboardingScreen() {
 
   const handleGetStarted = async () => {
     await setTutorialSeen();
-    router.back();
+    // 跳转到关卡选择界面
+    router.push('/(tabs)/levels');
   };
 
   const handleSkip = () => {

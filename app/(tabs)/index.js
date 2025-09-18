@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import useGameStore from '../../store/useGameStore';
 import { LEVEL_CONFIGS } from '../../constants/levels';
+import LevelsCompletedCard from '../../components/LevelsCompletedCard';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function HomeScreen() {
 
   const handlePlayNext = () => {
     if (nextLevelConfig) {
-      router.push(`/details/${nextLevel}`);
+      router.push(`/game/${nextLevel}`);
     }
   };
 
@@ -81,25 +82,7 @@ export default function HomeScreen() {
 
       {/* Summary Cards */}
       <View style={styles.summaryContainer}>
-        <View style={styles.summaryCard}>
-          <Ionicons name="trophy" size={24} color="#F59E0B" />
-          <Text style={styles.summaryValue}>{gameData.maxLevel - 1}</Text>
-          <Text style={styles.summaryLabel}>Levels Completed</Text>
-        </View>
-        
-        <View style={styles.summaryCard}>
-          <Ionicons name="star" size={24} color="#10B981" />
-          <Text style={styles.summaryValue}>{gameData.maxScore}</Text>
-          <Text style={styles.summaryLabel}>Best Score</Text>
-        </View>
-        
-        <View style={styles.summaryCard}>
-          <Ionicons name="time" size={24} color="#8B5CF6" />
-          <Text style={styles.summaryValue}>
-            {gameData.bestTime === Infinity ? '--' : `${Math.round(gameData.bestTime)}s`}
-          </Text>
-          <Text style={styles.summaryLabel}>Best Time</Text>
-        </View>
+        <LevelsCompletedCard count={gameData.maxLevel - 1} />
       </View>
 
       {/* Primary CTA */}
@@ -212,34 +195,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   summaryContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
     marginBottom: 30,
-  },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  summaryValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
   },
   ctaContainer: {
     paddingHorizontal: 20,

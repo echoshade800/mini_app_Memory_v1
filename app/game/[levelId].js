@@ -150,7 +150,7 @@ export default function GameScreen() {
     if (isMatch) {
       // Match found - add haptic feedback
       if (Haptics.impactAsync) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
       
       const newMatchedCards = [...matchedCards, first, second];
@@ -188,22 +188,25 @@ export default function GameScreen() {
     // Show score animation first
     setTimeout(() => {
       setShowScoreAnimation(true);
-      
-      // 设置重新开始游戏的全局函数
-      window.restartLevel = () => {
-        setShowScoreAnimation(false);
-        clearAllTimers();
-        initializeGame();
-      };
     }, 1000);
   };
 
-  const handleScoreAnimationComplete = () => {
+  const handleQuit = () => {
+    setShowScoreAnimation(false);
+    router.push('/(tabs)');
+  };
+
+  const handleRetry = () => {
+    setShowScoreAnimation(false);
+    clearAllTimers();
+    initializeGame();
+  };
+
+  const handleNext = () => {
     setShowScoreAnimation(false);
     const isLastLevel = level.id === 25;
     const nextLevelId = level.id + 1;
     
-    // 直接处理关卡完成逻辑，不显示对话框
     if (isLastLevel) {
       // 最后一关完成，返回主页
       router.push('/(tabs)');
@@ -272,7 +275,10 @@ export default function GameScreen() {
         <ScoreProgressBars
           scoreData={finalScoreData}
           levelId={level.id}
-          onAnimationComplete={handleScoreAnimationComplete}
+          onAnimationComplete={() => {}} // 不再需要，因为现在有独立的按钮
+          onQuit={handleQuit}
+          onRetry={handleRetry}
+          onNext={handleNext}
         />
       )}
 

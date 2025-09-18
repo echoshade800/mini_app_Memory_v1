@@ -47,13 +47,14 @@ export default function LevelsScreen() {
 
   const handleLevelPress = (level) => {
     if (level.id <= gameData.maxLevel) {
-      router.push(`/details/${level.id}`);
+      router.push(`/game/${level.id}`);
     }
   };
 
   const renderLevel = ({ item: level }) => {
     const isUnlocked = level.id <= gameData.maxLevel;
-    const bestScore = gameData.scoresByLevel[level.id] || 0;
+    const bestScore = gameData.scoresByLevel?.[level.id] || 0;
+    const bestTime = gameData.timesByLevel?.[level.id];
     const maxPossible = 30 * level.id;
 
     return (
@@ -85,12 +86,24 @@ export default function LevelsScreen() {
             {level.cards} cards • {level.rows}×{level.cols} grid
           </Text>
           
-          {isUnlocked && bestScore > 0 && (
-            <View style={styles.scoreContainer}>
-              <Ionicons name="star" size={14} color="#F59E0B" />
-              <Text style={styles.scoreText}>
-                {bestScore}/{maxPossible} pts
-              </Text>
+          {isUnlocked && (bestScore > 0 || (bestTime && bestTime !== Infinity)) && (
+            <View style={styles.statsContainer}>
+              {bestScore > 0 && (
+                <View style={styles.scoreContainer}>
+                  <Ionicons name="star" size={14} color="#F59E0B" />
+                  <Text style={styles.scoreText}>
+                    {bestScore}/{maxPossible} pts
+                  </Text>
+                </View>
+              )}
+              {bestTime && bestTime !== Infinity && (
+                <View style={styles.timeContainer}>
+                  <Ionicons name="time" size={14} color="#8B5CF6" />
+                  <Text style={styles.timeText}>
+                    {Math.round(bestTime)}s
+                  </Text>
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -301,13 +314,29 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginBottom: 4,
   },
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: 12,
   },
   scoreText: {
     fontSize: 12,
     color: '#F59E0B',
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeText: {
+    fontSize: 12,
+    color: '#8B5CF6',
     fontWeight: '500',
     marginLeft: 4,
   },

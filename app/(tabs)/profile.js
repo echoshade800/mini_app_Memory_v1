@@ -13,7 +13,6 @@ import useGameStore from '../../store/useGameStore';
 export default function ProfileScreen() {
   const router = useRouter();
   const { userData, gameData, updateProgress } = useGameStore();
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
 
@@ -111,19 +110,6 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>Game Settings</Text>
         
         <View style={styles.settingsContainer}>
-          <View style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Ionicons name="volume-high" size={20} color="#6B7280" />
-              <Text style={styles.settingLabel}>Sound Effects</Text>
-            </View>
-            <Switch
-              value={soundEnabled}
-              onValueChange={setSoundEnabled}
-              trackColor={{ false: '#E5E7EB', true: '#3B82F6' }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
               <Ionicons name="phone-portrait" size={20} color="#6B7280" />

@@ -10,7 +10,10 @@ import { Ionicons } from '@expo/vector-icons';
 export default function ScoreProgressBars({ 
   scoreData, 
   levelId, 
-  onAnimationComplete 
+  onAnimationComplete,
+  onQuit,
+  onRetry,
+  onNext
 }) {
   const performanceAnim = useRef(new Animated.Value(0)).current;
   const comboAnim = useRef(new Animated.Value(0)).current;
@@ -123,20 +126,23 @@ export default function ScoreProgressBars({
           )}
         </View>
 
-        <TouchableOpacity style={styles.continueButton} onPress={onAnimationComplete}>
-          <Text style={styles.continueButtonText}>Continue</Text>
-          <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-        </TouchableOpacity>
+        {/* 三个按钮 */}
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity style={styles.quitButton} onPress={onQuit}>
+            <Ionicons name="close" size={20} color="#6B7280" />
+            <Text style={styles.quitButtonText}>Quit</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.secondaryButton} onPress={() => {
-          // 重新开始当前关卡的逻辑需要从父组件传入
-          if (window.restartLevel) {
-            window.restartLevel();
-          }
-        }}>
-          <Text style={styles.secondaryButtonText}>Play Again</Text>
-          <Ionicons name="refresh" size={20} color="#6B7280" />
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+            <Ionicons name="refresh" size={20} color="#F59E0B" />
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.nextButton} onPress={onNext}>
+            <Text style={styles.nextButtonText}>Next</Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
     </Animated.View>
   );
@@ -233,38 +239,62 @@ const styles = StyleSheet.create({
     width: '33%',
     textAlign: 'right',
   },
-  continueButton: {
-    backgroundColor: '#3B82F6',
+  buttonsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    justifyContent: 'space-between',
+    marginTop: 20,
   },
-  secondaryButton: {
+  quitButton: {
+    flex: 1,
     backgroundColor: '#F3F4F6',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
-    marginTop: 12,
+    marginRight: 8,
   },
-  secondaryButtonText: {
+  quitButtonText: {
     color: '#6B7280',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginRight: 8,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
   },
-  continueButtonText: {
+  retryButton: {
+    flex: 1,
+    backgroundColor: '#FEF3C7',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginHorizontal: 4,
+  },
+  retryButtonText: {
+    color: '#D97706',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  nextButton: {
+    flex: 1,
+    backgroundColor: '#3B82F6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginLeft: 8,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  nextButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginRight: 8,
+    marginRight: 4,
   },
 });

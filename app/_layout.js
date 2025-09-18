@@ -13,7 +13,6 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="details/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="game/[levelId]" options={{ headerShown: false }} />
         <Stack.Screen name="about" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />

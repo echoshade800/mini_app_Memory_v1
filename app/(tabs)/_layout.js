@@ -39,15 +39,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="new-run"
-        options={{
-          title: 'New Run',
-          tabBarIcon: ({ size, color }) => (
-            <Ionicons name="play" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
