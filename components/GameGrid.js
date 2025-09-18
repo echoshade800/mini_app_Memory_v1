@@ -16,13 +16,15 @@ export default function GameGrid({
   disabled, 
   rows, 
   cols,
-  cardColor 
+  cardColor,
+  isPreview = false
 }) {
   const gridPadding = 20;
   const cardMargin = 4;
   
   // Calculate available space considering UI components
-  const headerHeight = 140; // Reduced GameHeader + preview banner space
+  // In preview mode, we need more space to avoid overlapping with the countdown timer
+  const headerHeight = isPreview ? 120 : 140; // Increased space in preview mode to avoid countdown overlap
   const bottomSafeArea = 120; // Increased bottom safe area for better spacing
   const availableHeight = screenHeight - headerHeight - bottomSafeArea;
   const availableWidth = screenWidth - (gridPadding * 2);
@@ -34,8 +36,34 @@ export default function GameGrid({
   // Use the smaller of the two to ensure cards fit in both dimensions
   const cardSize = Math.min(cardSizeByWidth, cardSizeByHeight);
   
-  // Ensure minimum card size for usability, but also set a maximum to prevent oversized cards
-  const finalCardSize = Math.max(Math.min(cardSize, 120), 50);
+  // Dynamic card size calculation based on level complexity
+  const totalCards = rows * cols;
+  let maxCardSize, minCardSize;
+  
+  if (totalCards <= 4) {
+    // Early levels (1-2): Larger cards, don't feel empty
+    maxCardSize = Math.min(160, screenWidth * 0.4);
+    minCardSize = 80;
+  } else if (totalCards <= 16) {
+    // Easy levels (3-6): Medium-large cards
+    maxCardSize = Math.min(120, screenWidth * 0.25);
+    minCardSize = 60;
+  } else if (totalCards <= 36) {
+    // Medium levels (7-13): Medium cards
+    maxCardSize = Math.min(100, screenWidth * 0.2);
+    minCardSize = 50;
+  } else if (totalCards <= 64) {
+    // Hard levels (14-21): Smaller cards, more precision needed
+    maxCardSize = Math.min(80, screenWidth * 0.15);
+    minCardSize = 40;
+  } else {
+    // Extreme levels (22-25): Very small cards, fit many on screen without overlapping
+    maxCardSize = Math.min(60, screenWidth * 0.1);
+    minCardSize = 30;
+  }
+  
+  // Apply size constraints while ensuring cards don't overlap with UI elements
+  const finalCardSize = Math.max(Math.min(cardSize, maxCardSize), minCardSize);
 
   const renderCard = (card, index) => {
     const isFlipped = flippedCards.includes(index) || matchedCards.includes(index);

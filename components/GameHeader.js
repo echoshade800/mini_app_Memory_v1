@@ -14,7 +14,8 @@ export default function GameHeader({
   attempts, 
   onMenuPress, 
   onBackPress,
-  isPreview = false 
+  isPreview = false,
+  previewTimer = 0
 }) {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -57,8 +58,7 @@ export default function GameHeader({
 
       {isPreview && (
         <View style={styles.previewBanner}>
-          <Ionicons name="eye" size={20} color="#F59E0B" />
-          <Text style={styles.previewText}>Memorize the cards!</Text>
+          <Text style={styles.previewTimer}>{previewTimer}</Text>
         </View>
       )}
     </View>
@@ -110,7 +110,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   previewBanner: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FEF3C7',
@@ -119,10 +118,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 8,
   },
-  previewText: {
-    fontSize: 16,
-    fontWeight: '600',
+  previewTimer: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#D97706',
-    marginLeft: 8,
   },
 });

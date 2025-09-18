@@ -262,14 +262,9 @@ export default function GameScreen() {
         onMenuPress={handleMenuPress}
         onBackPress={handleBackPress}
         isPreview={isPreviewMode}
+        previewTimer={previewTimer}
       />
 
-      {isPreviewMode && (
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewTimer}>{previewTimer}</Text>
-          <Text style={styles.previewText}>Memorize the positions!</Text>
-        </View>
-      )}
 
       {showScoreAnimation && finalScoreData && (
         <ScoreProgressBars
@@ -291,6 +286,7 @@ export default function GameScreen() {
         rows={level.rows}
         cols={level.cols}
         cardColor={cardColor}
+        isPreview={isPreviewMode}
       />
 
       {gameState === 'completed' && (
@@ -316,25 +312,6 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     color: '#EF4444',
-  },
-  previewContainer: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    backgroundColor: '#FEF3C7',
-    marginHorizontal: 20,
-    marginTop: 8,
-    borderRadius: 12,
-  },
-  previewTimer: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#D97706',
-    marginBottom: 6,
-  },
-  previewText: {
-    fontSize: 16,
-    color: '#92400E',
-    fontWeight: '500',
   },
   completedOverlay: {
     position: 'absolute',
