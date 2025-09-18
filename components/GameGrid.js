@@ -6,7 +6,7 @@
 import { View, StyleSheet, Dimensions } from 'react-native';
 import GameCard from './GameCard';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function GameGrid({ 
   cards, 
@@ -18,10 +18,24 @@ export default function GameGrid({
   cols,
   cardColor 
 }) {
-  const gridPadding = 40;
+  const gridPadding = 20;
   const cardMargin = 4;
-  const availableWidth = screenWidth - gridPadding;
-  const cardSize = Math.floor((availableWidth - (cardMargin * (cols - 1))) / cols);
+  
+  // Calculate available space considering UI components
+  const headerHeight = 160; // GameHeader + preview banner space
+  const bottomSafeArea = 100; // Bottom safe area and potential UI
+  const availableHeight = screenHeight - headerHeight - bottomSafeArea;
+  const availableWidth = screenWidth - (gridPadding * 2);
+  
+  // Calculate card size based on both width and height constraints
+  const cardSizeByWidth = Math.floor((availableWidth - (cardMargin * 2 * (cols - 1))) / cols);
+  const cardSizeByHeight = Math.floor((availableHeight - (cardMargin * 2 * (rows - 1))) / rows);
+  
+  // Use the smaller of the two to ensure cards fit in both dimensions
+  const cardSize = Math.min(cardSizeByWidth, cardSizeByHeight);
+  
+  // Ensure minimum card size for usability
+  const finalCardSize = Math.max(cardSize, 60);
 
   const renderCard = (card, index) => {
     const isFlipped = flippedCards.includes(index) || matchedCards.includes(index);
@@ -35,7 +49,7 @@ export default function GameGrid({
         isMatched={isMatched}
         onPress={() => onCardPress(index)}
         disabled={disabled}
-        cardSize={cardSize}
+        cardSize={finalCardSize}
         cardColor={cardColor}
       />
     );
@@ -68,7 +82,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
   },
   grid: {
     alignItems: 'center',
