@@ -30,17 +30,17 @@ export default function GameGrid({
   
   // Calculate safe area bounds for card container (黑线标出的区域)
   const calculateSafeAreaBounds = () => {
-    // 上边界 = 倒计时/提示条的下边缘
-    const topBound = headerBottomY;
+    // 上边界 = 倒计时/提示条的下边缘 + 2px 上边距
+    const topMargin = 2; // 上边距
+    const topBound = headerBottomY + topMargin;
     
-    // 下边界 = SafeAreaView 的底部 inset 上边缘，减去底部边距
-    const bottomMargin = 20; // 底部留白间距
-    const bottomBound = screenHeight - insets.bottom - bottomMargin;
+    // 下边界 = 屏幕底部 - 2px 下边距
+    const bottomMargin = 2; // 下边距
+    const bottomBound = screenHeight - bottomMargin;
     
-    // 计算左右边距，设置为0px让网格完全贴合屏幕边缘
-    const horizontalMargin = 0; // 左右留白间距设为0
-    const leftBound = insets.left + horizontalMargin;
-    const rightBound = screenWidth - insets.right - horizontalMargin;
+    // 左右边距设为0px，让网格完全贴合屏幕边缘
+    const leftBound = insets.left;
+    const rightBound = screenWidth - insets.right;
     
     // 计算安全区域内的可用尺寸
     const safeAreaWidth = rightBound - leftBound;

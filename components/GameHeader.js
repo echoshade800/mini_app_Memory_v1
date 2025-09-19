@@ -38,13 +38,14 @@ export default function GameHeader({
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
-        <TouchableOpacity style={styles.iconButton} onPress={onBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
+        <View style={styles.leftSection}>
+          <TouchableOpacity style={styles.iconButton} onPress={onBackPress}>
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={styles.levelTitle}>Level {level}</Text>
+        </View>
         
         <View style={styles.centerInfo}>
-          <Text style={styles.levelTitle}>Level {level}</Text>
-          
           {!isPreview && (
             <View style={styles.statsInline}>
               <View style={styles.statItem}>
@@ -60,16 +61,18 @@ export default function GameHeader({
           )}
         </View>
         
-        <TouchableOpacity style={styles.iconButton} onPress={onMenuPress}>
-          <Ionicons name="menu" size={24} color="#1F2937" />
-        </TouchableOpacity>
+        <View style={styles.rightSection}>
+          {isPreview && (
+            <View style={styles.previewTimerContainer}>
+              <Text style={styles.previewTimer}>{previewTimer}</Text>
+            </View>
+          )}
+          <TouchableOpacity style={styles.iconButton} onPress={onMenuPress}>
+            <Ionicons name="menu" size={24} color="#1F2937" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {isPreview && (
-        <View style={styles.previewBanner}>
-          <Text style={styles.previewTimer}>{previewTimer}</Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -88,6 +91,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 0,
+    marginRight: 'auto',
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 0,
+    marginLeft: 'auto',
+  },
   iconButton: {
     padding: 8,
     borderRadius: 8,
@@ -102,7 +117,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: 8,
+    marginLeft: 12,
   },
   statsInline: {
     flexDirection: 'row',
@@ -123,17 +138,17 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginLeft: 4,
   },
-  previewBanner: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  previewTimerContainer: {
     backgroundColor: '#FEF3C7',
-    paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 8,
+    paddingVertical: 8,
+    borderRadius: 12,
+    minWidth: 60,
+    alignItems: 'center',
+    marginRight: 12,
   },
   previewTimer: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#D97706',
   },
