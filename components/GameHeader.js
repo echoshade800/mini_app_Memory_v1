@@ -5,6 +5,7 @@
 
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { calculateTotalScore, calculateComboSegments } from '../utils/scoring';
 
 export default function GameHeader({ 
   level, 
@@ -12,6 +13,7 @@ export default function GameHeader({
   pairs, 
   totalPairs, 
   attempts, 
+  matchHistory = [],
   onMenuPress, 
   onBackPress,
   isPreview = false,
@@ -23,6 +25,16 @@ export default function GameHeader({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Calculate current total score
+  const getCurrentScore = () => {
+    if (!isPreview && matchHistory.length > 0) {
+      const comboSegments = calculateComboSegments(matchHistory);
+      const scoreData = calculateTotalScore(level, totalPairs, attempts, timer, comboSegments);
+      return scoreData.total;
+    }
+    return 0;
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
@@ -30,31 +42,28 @@ export default function GameHeader({
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
         
-        <Text style={styles.levelTitle}>Level {level}</Text>
+        <View style={styles.centerInfo}>
+          <Text style={styles.levelTitle}>Level {level}</Text>
+          
+          {!isPreview && (
+            <View style={styles.statsInline}>
+              <View style={styles.statItem}>
+                <Ionicons name="time" size={16} color="#8B5CF6" />
+                <Text style={styles.statValue}>{formatTime(timer)}</Text>
+              </View>
+              
+              <View style={styles.statItem}>
+                <Ionicons name="star" size={16} color="#F59E0B" />
+                <Text style={styles.statValue}>{getCurrentScore()}</Text>
+              </View>
+            </View>
+          )}
+        </View>
         
         <TouchableOpacity style={styles.iconButton} onPress={onMenuPress}>
           <Ionicons name="menu" size={24} color="#1F2937" />
         </TouchableOpacity>
       </View>
-
-      {!isPreview && (
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Ionicons name="time" size={16} color="#8B5CF6" />
-            <Text style={styles.statValue}>{formatTime(timer)}</Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Ionicons name="heart" size={16} color="#EF4444" />
-            <Text style={styles.statValue}>{pairs}/{totalPairs}</Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Ionicons name="eye" size={16} color="#06B6D4" />
-            <Text style={styles.statValue}>{attempts}</Text>
-          </View>
-        </View>
-      )}
 
       {isPreview && (
         <View style={styles.previewBanner}>
@@ -78,22 +87,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
   },
   iconButton: {
     padding: 8,
     borderRadius: 8,
     backgroundColor: '#F3F4F6',
   },
+  centerInfo: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 20,
+  },
   levelTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1F2937',
+    marginBottom: 8,
   },
-  statsRow: {
+  statsInline: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingTop: 8,
+    alignItems: 'center',
+    gap: 16,
   },
   statItem: {
     flexDirection: 'row',

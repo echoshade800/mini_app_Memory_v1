@@ -95,7 +95,7 @@ export default function GameCard({
 
       {/* Card Front (emoji face) */}
       <Animated.View style={[styles.card, styles.cardFront, backStyle]}>
-        <Text style={[styles.emoji, { fontSize: cardSize * 0.4 }]}>
+        <Text style={[styles.emoji, { fontSize: cardSize * 0.8 }]}>
           {emoji}
         </Text>
       </Animated.View>
@@ -138,5 +138,8 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontWeight: 'normal',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
 });

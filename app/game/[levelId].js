@@ -259,6 +259,7 @@ export default function GameScreen() {
         pairs={matchedCards.length / 2}
         totalPairs={level.cards / 2}
         attempts={attempts}
+        matchHistory={matchHistory}
         onMenuPress={handleMenuPress}
         onBackPress={handleBackPress}
         isPreview={isPreviewMode}
@@ -287,6 +288,7 @@ export default function GameScreen() {
         cols={level.cols}
         cardColor={cardColor}
         isPreview={isPreviewMode}
+        levelId={level.id}
       />
 
       {gameState === 'completed' && (

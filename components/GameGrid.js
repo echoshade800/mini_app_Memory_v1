@@ -17,53 +17,52 @@ export default function GameGrid({
   rows, 
   cols,
   cardColor,
-  isPreview = false
+  isPreview = false,
+  levelId = 1 // Add levelId to identify problem levels
 }) {
-  const gridPadding = 20;
-  const cardMargin = 4;
+  // Problematic levels that need special handling
+  const problemLevels = [1, 4, 7, 12, 17, 22];
+  const isProblemLevel = problemLevels.includes(levelId);
   
-  // Calculate available space considering UI components
-  // In preview mode, we need more space to avoid overlapping with the countdown timer
-  const headerHeight = isPreview ? 120 : 140; // Increased space in preview mode to avoid countdown overlap
-  const bottomSafeArea = 120; // Increased bottom safe area for better spacing
-  const availableHeight = screenHeight - headerHeight - bottomSafeArea;
+  // Special adjustments for different problem levels
+  const getSpecialAdjustments = () => {
+    switch(levelId) {
+      case 1: // 2 rows, 1 col - very tall cards
+        return { gridPadding: 20, cardMargin: 3, bottomMargin: 30 };
+      case 4: // 4 rows, 2 cols
+        return { gridPadding: 16, cardMargin: 2, bottomMargin: 25 };
+      case 7: // 6 rows, 3 cols
+        return { gridPadding: 12, cardMargin: 1, bottomMargin: 20 };
+      case 12: // 8 rows, 4 cols
+        return { gridPadding: 10, cardMargin: 1, bottomMargin: 15 };
+      case 17: // 10 rows, 5 cols
+        return { gridPadding: 8, cardMargin: 1, bottomMargin: 10 };
+      case 22: // 11 rows, 6 cols
+        return { gridPadding: 6, cardMargin: 1, bottomMargin: 8 };
+      default:
+        return { gridPadding: 16, cardMargin: 2, bottomMargin: 0 };
+    }
+  };
+  
+  const adjustments = getSpecialAdjustments();
+  const gridPadding = adjustments.gridPadding;
+  const cardMargin = adjustments.cardMargin;
+  const bottomMargin = adjustments.bottomMargin;
+  
+  // Calculate available space - only account for header, use all remaining space
+  const headerHeight = isPreview ? 140 : 120; // Header height including safe area
+  const availableHeight = screenHeight - headerHeight;
   const availableWidth = screenWidth - (gridPadding * 2);
   
-  // Calculate card size based on both width and height constraints
-  const cardSizeByWidth = Math.floor((availableWidth - (cardMargin * 2 * (cols - 1))) / cols);
-  const cardSizeByHeight = Math.floor((availableHeight - (cardMargin * 2 * (rows - 1))) / rows);
+  // For problem levels, add extra bottom margin to prevent overflow
+  const effectiveHeight = availableHeight - bottomMargin;
+  
+  // Calculate card size to fill all available space
+  const cardSizeByWidth = Math.floor((availableWidth - (cardMargin * (cols - 1))) / cols);
+  const cardSizeByHeight = Math.floor((effectiveHeight - (cardMargin * (rows - 1))) / rows);
   
   // Use the smaller of the two to ensure cards fit in both dimensions
-  const cardSize = Math.min(cardSizeByWidth, cardSizeByHeight);
-  
-  // Dynamic card size calculation based on level complexity
-  const totalCards = rows * cols;
-  let maxCardSize, minCardSize;
-  
-  if (totalCards <= 4) {
-    // Early levels (1-2): Larger cards, don't feel empty
-    maxCardSize = Math.min(160, screenWidth * 0.4);
-    minCardSize = 80;
-  } else if (totalCards <= 16) {
-    // Easy levels (3-6): Medium-large cards
-    maxCardSize = Math.min(120, screenWidth * 0.25);
-    minCardSize = 60;
-  } else if (totalCards <= 36) {
-    // Medium levels (7-13): Medium cards
-    maxCardSize = Math.min(100, screenWidth * 0.2);
-    minCardSize = 50;
-  } else if (totalCards <= 64) {
-    // Hard levels (14-21): Smaller cards, more precision needed
-    maxCardSize = Math.min(80, screenWidth * 0.15);
-    minCardSize = 40;
-  } else {
-    // Extreme levels (22-25): Very small cards, fit many on screen without overlapping
-    maxCardSize = Math.min(60, screenWidth * 0.1);
-    minCardSize = 30;
-  }
-  
-  // Apply size constraints while ensuring cards don't overlap with UI elements
-  const finalCardSize = Math.max(Math.min(cardSize, maxCardSize), minCardSize);
+  const finalCardSize = Math.min(cardSizeByWidth, cardSizeByHeight);
 
   const renderCard = (card, index) => {
     const isFlipped = flippedCards.includes(index) || matchedCards.includes(index);
@@ -96,9 +95,19 @@ export default function GameGrid({
     );
   };
 
+  const containerStyle = [
+    styles.container,
+    isProblemLevel && styles.problemLevelContainer
+  ];
+  
+  const gridStyle = [
+    styles.grid,
+    isProblemLevel && styles.problemLevelGrid
+  ];
+
   return (
-    <View style={styles.container}>
-      <View style={styles.grid}>
+    <View style={containerStyle}>
+      <View style={gridStyle}>
         {Array.from({ length: rows }, (_, index) => renderRow(index))}
       </View>
     </View>
@@ -110,13 +119,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingBottom: 20, // Add bottom padding to prevent cutoff
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  problemLevelContainer: {
+    paddingTop: 8, // Reduce top padding for problem levels
+    paddingBottom: 8, // Reduce bottom padding for problem levels
+    paddingHorizontal: 6, // Reduce horizontal padding for problem levels
   },
   grid: {
-    alignItems: 'center',
-    maxHeight: screenHeight * 0.65, // Increased slightly for better card visibility
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  problemLevelGrid: {
+    justifyContent: 'flex-start', // Align to top for problem levels
+    paddingTop: 4, // Small top padding
   },
   row: {
     flexDirection: 'row',
