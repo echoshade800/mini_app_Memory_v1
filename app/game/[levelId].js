@@ -289,6 +289,7 @@ export default function GameScreen() {
         cardColor={cardColor}
         isPreview={isPreviewMode}
         levelId={level.id}
+        headerBottomY={160} // 倒计时/提示条的下边缘位置，保持一致性
       />
 
       {gameState === 'completed' && (

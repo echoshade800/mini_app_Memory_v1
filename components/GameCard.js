@@ -14,7 +14,8 @@ export default function GameCard({
   isMatched, 
   onPress, 
   disabled, 
-  cardSize, 
+  cardWidth, 
+  cardHeight,
   cardColor 
 }) {
   const flipAnimation = useRef(new Animated.Value(0)).current;
@@ -66,8 +67,8 @@ export default function GameCard({
   });
 
   const cardStyle = {
-    width: cardSize,
-    height: cardSize,
+    width: cardWidth,
+    height: cardHeight,
     transform: [{ scale: scaleAnimation }]
   };
 
@@ -95,7 +96,7 @@ export default function GameCard({
 
       {/* Card Front (emoji face) */}
       <Animated.View style={[styles.card, styles.cardFront, backStyle]}>
-        <Text style={[styles.emoji, { fontSize: cardSize * 0.8 }]}>
+        <Text style={[styles.emoji, { fontSize: Math.min(cardWidth, cardHeight) * 0.85 }]}>
           {emoji}
         </Text>
       </Animated.View>
@@ -105,7 +106,8 @@ export default function GameCard({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    margin: 2,
+    // Remove margin to prevent size inconsistency
+    // margin: 2,
   },
   card: {
     position: 'absolute',
