@@ -78,12 +78,12 @@ export default function PowerupBar({
     } else if (canAfford) {
       // No powerup but have coins, ask to buy
       Alert.alert(
-        `Buy ${config.name}`,
-        `${config.description}\n\nPrice: ${config.price} coins\n\nAre you sure you want to buy and use this powerup?`,
+        `Use ${config.name}?`,
+        `${config.description}\n\nPrice: ${config.price} coins`,
         [
           { text: 'Cancel', style: 'cancel' },
           { 
-            text: 'Buy & Use', 
+            text: 'Use', 
             onPress: async () => {
               setIsProcessing(true);
               try {

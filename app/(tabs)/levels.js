@@ -98,7 +98,8 @@ export default function LevelsScreen() {
   const renderLevelCell = (level, tierColor) => {
     const isUnlocked = level.id <= gameData.maxLevel;
     const bestScore = Number(gameData.scoresByLevel?.[level.id]) || 0;
-    const maxPossible = 30 * level.id;
+    const totalPairs = level.cards / 2;
+    const maxPossible = totalPairs * 30;
 
     return (
       <TouchableOpacity

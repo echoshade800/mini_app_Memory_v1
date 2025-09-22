@@ -3,11 +3,9 @@
  * Renders individual memory cards with flip animations and emoji faces
  */
 
-import { TouchableOpacity, Text, StyleSheet, Animated, Dimensions, Image } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Animated, Image } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { TIER_COLORS } from '../constants/levels';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 export default function GameCard({ 
   emoji, 
@@ -20,6 +18,7 @@ export default function GameCard({
   cardColor,
   cardBackImage,
   levelTier,
+  isGlimpseActive = false,
   onLayout 
 }) {
   const flipAnimation = useRef(new Animated.Value(0)).current;
@@ -120,6 +119,10 @@ export default function GameCard({
         <Text style={[styles.emoji, { fontSize: Math.min(cardWidth, cardHeight) * 0.85 }]}>
           {emoji}
         </Text>
+        {/* Green overlay for matched cards during glimpse */}
+        {isGlimpseActive && isMatched && (
+          <View style={styles.glimpseOverlay} />
+        )}
       </Animated.View>
     </TouchableOpacity>
   );
@@ -185,5 +188,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textAlignVertical: 'center',
     includeFontPadding: false,
+  },
+  glimpseOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(34, 197, 94, 0.4)', // Green with 40% opacity
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: 'rgba(34, 197, 94, 0.6)',
   },
 });

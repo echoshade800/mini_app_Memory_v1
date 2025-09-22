@@ -100,16 +100,6 @@ export function calculateTotalScore(levelId, totalPairs, attempts, durationSec, 
   };
 }
 
-/**
- * Utility function to clamp a value between min and max
- * @param {number} value - Value to clamp
- * @param {number} min - Minimum value
- * @param {number} max - Maximum value
- * @returns {number} Clamped value
- */
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
-}
 
 /**
  * Calculate combo segments from match history

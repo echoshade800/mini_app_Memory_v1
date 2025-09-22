@@ -12,24 +12,11 @@ import useGameStore from '../../store/useGameStore';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { userData, gameData, updateProgress } = useGameStore();
+  const { gameData, updateProgress } = useGameStore();
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
-  const [showTutorial, setShowTutorial] = useState(false);
-
-  const handleAbout = () => {
-    router.push('/about');
-  };
 
   const handleTutorial = () => {
     router.push('/onboarding');
-  };
-
-  const handleDataExport = () => {
-    Alert.alert(
-      'Export Data',
-      'Data export feature coming soon. This will allow you to backup your game progress.',
-      [{ text: 'OK' }]
-    );
   };
 
   const handleResetProgress = () => {
@@ -115,18 +102,6 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.actionItem} onPress={handleTutorial}>
             <Ionicons name="help-circle" size={20} color="#6B7280" />
             <Text style={styles.actionLabel}>View Tutorial</Text>
-            <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionItem} onPress={handleAbout}>
-            <Ionicons name="information-circle" size={20} color="#6B7280" />
-            <Text style={styles.actionLabel}>About & Help</Text>
-            <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionItem} onPress={handleDataExport}>
-            <Ionicons name="download" size={20} color="#6B7280" />
-            <Text style={styles.actionLabel}>Export Data</Text>
             <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
           </TouchableOpacity>
         </View>

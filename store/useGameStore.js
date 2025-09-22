@@ -25,8 +25,7 @@ const useGameStore = create((set, get) => ({
     }
   },
   
-  // Current game state
-  currentGame: null,
+  // Loading state
   isLoading: false,
   error: null,
 
@@ -163,11 +162,6 @@ const useGameStore = create((set, get) => ({
   // Clear error
   clearError: () => set({ error: null }),
 
-  // Set current game
-  setCurrentGame: (game) => set({ currentGame: game }),
-
-  // Clear current game
-  clearCurrentGame: () => set({ currentGame: null }),
 
   // 添加金币
   addCoins: async (amount) => {

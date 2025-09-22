@@ -4,12 +4,10 @@
  * Extension: Add power-ups, hints, different game modes, multiplayer
  */
 
-import { View, Text, StyleSheet, Alert, BackHandler } from 'react-native';
+import { View, Text, StyleSheet, Alert, BackHandler, TouchableOpacity, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Animated } from 'react-native';
 import { LEVEL_CONFIGS, EMOJI_POOL, CARD_COLORS } from '../../constants/levels';
 import { previewTimeSec, calculateTotalScore, calculateComboSegments } from '../../utils/scoring';
 import useGameStore from '../../store/useGameStore';
@@ -21,8 +19,8 @@ import PowerupBar from '../../components/PowerupBar';
 
 export default function GameScreen() {
   const router = useRouter();
-  const { levelId, color } = useLocalSearchParams();
-  const { completeLevel, usePowerup, gameData } = useGameStore();
+  const { levelId } = useLocalSearchParams();
+  const { completeLevel, gameData } = useGameStore();
   
   const level = LEVEL_CONFIGS.find(l => l.id === parseInt(levelId, 10));
   const cardColorIndex = (parseInt(levelId, 10) - 1) % CARD_COLORS.length;
@@ -30,6 +28,8 @@ export default function GameScreen() {
   
   // Game state
   const [gameState, setGameState] = useState('preview'); // 'preview', 'playing', 'completed', 'failed'
+  const [isPaused, setIsPaused] = useState(false);
+  const [isGlimpseActive, setIsGlimpseActive] = useState(false);
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
   const [matchedCards, setMatchedCards] = useState([]);
@@ -258,8 +258,6 @@ export default function GameScreen() {
 
   // 炸弹道具：随机移除一对未配对的卡牌
   const handleBombPowerup = () => {
-    console.log('💣 炸弹道具被激活');
-    
     // 找到所有未配对的卡牌
     const unmatchedCards = [];
     for (let i = 0; i < cards.length; i++) {
@@ -267,8 +265,6 @@ export default function GameScreen() {
         unmatchedCards.push(i);
       }
     }
-
-    console.log(`💣 未配对卡牌数量: ${unmatchedCards.length}`);
 
     if (unmatchedCards.length < 2) {
       Alert.alert('Bomb Powerup', 'Not enough cards to remove!');
@@ -287,80 +283,99 @@ export default function GameScreen() {
       }
     }
 
-    console.log(`💣 找到 ${possiblePairs.length} 个可能的配对`);
-
     if (possiblePairs.length > 0) {
       // 随机选择一对进行移除（标记为已匹配）
       const randomPair = possiblePairs[Math.floor(Math.random() * possiblePairs.length)];
       const newMatchedCards = [...matchedCards, ...randomPair];
       setMatchedCards(newMatchedCards);
       
-      console.log(`💣 移除了配对: ${cards[randomPair[0]].emoji} (位置: ${randomPair[0]}, ${randomPair[1]})`);
-      
-      // Show removal effect
-      Alert.alert('Bomb Powerup', `Successfully removed ${cards[randomPair[0]].emoji} pair!`);
-      
       // Check if game is complete
       if (newMatchedCards.length === level.cards) {
         completeGame(matchHistory, attempts);
       }
     } else {
-      console.log('💣 没有找到可以移除的配对');
       Alert.alert('Bomb Powerup', 'No matching pairs found to remove!');
     }
   };
 
 
-  // 时钟道具：翻开所有卡牌5秒后翻转
+  // 时钟道具：翻开所有卡牌5秒后翻转，已匹配的卡牌显示绿色半透明覆盖
   const handleClockPowerup = () => {
-    // 显示所有未匹配的卡牌
-    const unmatchedCards = [];
+    // 显示所有卡牌
+    const allCards = [];
     for (let i = 0; i < cards.length; i++) {
-      if (!matchedCards.includes(i)) {
-        unmatchedCards.push(i);
-      }
+      allCards.push(i);
     }
     
-    setFlippedCards(unmatchedCards);
+    setFlippedCards(allCards);
+    setIsGlimpseActive(true);
     
     // 5秒后翻转回去
     setTimeout(() => {
       setFlippedCards([]);
+      setIsGlimpseActive(false);
     }, 5000);
   };
 
   // Skip powerup: directly complete the current level
   const handleSkipPowerup = () => {
-    Alert.alert(
-      'Skip Level',
-      'Are you sure you want to skip the current level?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Skip', 
-          onPress: () => {
-            // Directly complete the game
-            completeGame([], 0);
-          }
-        }
-      ]
-    );
+    // Directly complete the game
+    completeGame([], 0);
   };
 
 
+  // Pause game function
+  const pauseGame = () => {
+    setIsPaused(true);
+    // Clear the main timer to pause the game
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  // Resume game function
+  const resumeGame = () => {
+    setIsPaused(false);
+    // Restart the timer
+    timerRef.current = setInterval(() => {
+      setTimer(prev => prev + 1);
+    }, 1000);
+  };
+
+  // Reset game function
+  const resetGame = () => {
+    setIsPaused(false);
+    clearAllTimers();
+    initializeGame();
+  };
+
+  // Quit game function
+  const quitGame = () => {
+    setIsPaused(false);
+    clearAllTimers();
+    router.back();
+  };
+
   const handleMenuPress = () => {
-    Alert.alert(
-      'Game Menu',
-      'Choose an option:',
-      [
-        { text: 'Tutorial', onPress: () => router.push('/onboarding') },
-        { text: 'Restart Level', onPress: () => {
-          clearAllTimers();
-          initializeGame();
-        }},
-        { text: 'Cancel', style: 'cancel' }
-      ]
-    );
+    // Only pause during playing state (memory and card-flipping phases)
+    if (gameState === 'playing') {
+      pauseGame();
+    } else {
+      // For other states, show the old menu
+      Alert.alert(
+        'Game Menu',
+        'Choose an option:',
+        [
+          { text: 'Tutorial', onPress: () => router.push('/onboarding') },
+          { text: 'Restart Level', onPress: () => {
+            clearAllTimers();
+            initializeGame();
+          }},
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+    }
   };
 
   const handleBackPress = () => {
@@ -421,6 +436,7 @@ export default function GameScreen() {
         headerBottomY={118} // 头部下边缘位置，为2px上边距预留空间
         onCardPositionsChange={setCardPositions}
         powerupBarHeight={82} // 道具栏高度，为底部留出空间
+        isGlimpseActive={isGlimpseActive}
       />
 
       <ComboDisplay
@@ -433,9 +449,28 @@ export default function GameScreen() {
       <PowerupBar
         onUsePowerup={handleUsePowerup}
         gameState={gameState}
-        disabled={isGameDisabled}
+        disabled={isGameDisabled || isPaused}
       />
 
+      {/* Pause Overlay */}
+      {isPaused && (
+        <View style={styles.pauseOverlay}>
+          <View style={styles.pauseContainer}>
+            <Text style={styles.pauseTitle}>Game is paused</Text>
+            <View style={styles.pauseButtons}>
+              <TouchableOpacity style={styles.pauseButton} onPress={quitGame}>
+                <Text style={styles.pauseButtonText}>Quit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.pauseButton} onPress={resetGame}>
+                <Text style={styles.pauseButtonText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.pauseButton, styles.resumeButton]} onPress={resumeGame}>
+                <Text style={[styles.pauseButtonText, styles.resumeButtonText]}>Resume</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
 
       {gameState === 'completed' && (
         <View style={styles.completedOverlay}>
@@ -479,6 +514,63 @@ const styles = StyleSheet.create({
   completedText: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  pauseOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  pauseContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 16,
+    minWidth: 280,
+  },
+  pauseTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 24,
+  },
+  pauseButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 12,
+  },
+  pauseButton: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  resumeButton: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  pauseButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  resumeButtonText: {
     color: '#FFFFFF',
   },
 });

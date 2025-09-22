@@ -38,9 +38,11 @@ export default function GameHeader({
               <Text style={styles.previewTimer}>{previewTimer}</Text>
             </View>
           )}
-          <TouchableOpacity style={styles.iconButton} onPress={onMenuPress}>
-            <Ionicons name="menu" size={24} color="#1F2937" />
-          </TouchableOpacity>
+          {!isPreview && (
+            <TouchableOpacity style={styles.iconButton} onPress={onMenuPress}>
+              <Ionicons name="menu" size={24} color="#1F2937" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 

@@ -4,13 +4,11 @@
  * Extension: Add animated examples, difficulty selection, preferences setup
  */
 
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Switch } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import useGameStore from '../store/useGameStore';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 const ONBOARDING_SLIDES = [
   {
