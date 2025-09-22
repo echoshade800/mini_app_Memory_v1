@@ -164,10 +164,6 @@ export default function OnboardingScreen() {
         </View>
       </View>
 
-      {/* Privacy Link */}
-      <TouchableOpacity style={styles.privacyLink}>
-        <Text style={styles.privacyText}>Privacy Policy</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -312,14 +308,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     marginRight: 4,
-  },
-  privacyLink: {
-    alignItems: 'center',
-    paddingBottom: 20,
-  },
-  privacyText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textDecorationLine: 'underline',
   },
 });
