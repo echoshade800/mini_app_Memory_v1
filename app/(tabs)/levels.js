@@ -1,10 +1,10 @@
 /**
- * Levels Screen - List and filter levels
- * Purpose: Browse and search levels with filtering by difficulty tier
- * Extension: Add search functionality, favorites, completion tracking
+ * Levels Screen - Grid layout with difficulty sections
+ * Purpose: Display levels in a 3-column grid with difficulty sections
+ * Layout: Each difficulty takes 2 rows, first row first cell shows difficulty, rest show levels
  */
 
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useMemo } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,7 +26,7 @@ export default function LevelsScreen() {
   const [searchText, setSearchText] = useState('');
   const [selectedTier, setSelectedTier] = useState('all');
 
-  const filteredLevels = useMemo(() => {
+  const groupedLevels = useMemo(() => {
     let filtered = LEVEL_CONFIGS;
 
     // Filter by search text
@@ -42,7 +42,16 @@ export default function LevelsScreen() {
       filtered = filtered.filter(level => level.tier === selectedTier);
     }
 
-    return filtered;
+    // Group levels by tier
+    const grouped = {};
+    filtered.forEach(level => {
+      if (!grouped[level.tier]) {
+        grouped[level.tier] = [];
+      }
+      grouped[level.tier].push(level);
+    });
+
+    return grouped;
   }, [searchText, selectedTier]);
 
   const handleLevelPress = (level) => {
@@ -51,68 +60,73 @@ export default function LevelsScreen() {
     }
   };
 
-  const renderLevel = ({ item: level }) => {
+  const renderDifficultySection = (tier, levels) => {
+    const tierColor = TIER_COLORS[tier];
+    const tierDisplayName = tier.charAt(0).toUpperCase() + tier.slice(1);
+    
+    // Create a grid of 6 cells (2 rows x 3 columns)
+    const gridCells = [];
+    
+    // First cell - Difficulty name
+    gridCells.push(
+      <View key="difficulty" style={[styles.gridCell, styles.difficultyCell, { backgroundColor: tierColor }]}>
+        <Text style={styles.difficultyText}>{tierDisplayName}</Text>
+      </View>
+    );
+    
+    // Next 5 cells - Levels
+    for (let i = 0; i < 5; i++) {
+      const level = levels[i];
+      if (level) {
+        gridCells.push(renderLevelCell(level, tierColor));
+      } else {
+        gridCells.push(
+          <View key={`empty-${i}`} style={[styles.gridCell, styles.emptyCell]} />
+        );
+      }
+    }
+    
+    return (
+      <View key={tier} style={styles.difficultySection}>
+        <View style={styles.difficultyGrid}>
+          {gridCells}
+        </View>
+      </View>
+    );
+  };
+
+  const renderLevelCell = (level, tierColor) => {
     const isUnlocked = level.id <= gameData.maxLevel;
-    const bestScore = gameData.scoresByLevel?.[level.id] || 0;
-    const bestTime = gameData.timesByLevel?.[level.id];
+    const bestScore = Number(gameData.scoresByLevel?.[level.id]) || 0;
     const maxPossible = 30 * level.id;
 
     return (
       <TouchableOpacity
-        style={[styles.levelCard, !isUnlocked && styles.levelCardLocked]}
+        key={level.id}
+        style={[styles.gridCell, styles.levelCell, !isUnlocked && styles.levelCellLocked]}
         onPress={() => handleLevelPress(level)}
         disabled={!isUnlocked}
       >
-        <View style={styles.levelHeader}>
-          <View style={styles.levelNumber}>
+        <View style={styles.levelCellContent}>
+          <View style={[styles.levelNumber, { backgroundColor: tierColor }]}>
             <Text style={[styles.levelNumberText, !isUnlocked && styles.lockedText]}>
               {level.id}
             </Text>
             {!isUnlocked && (
-              <Ionicons name="lock-closed" size={16} color="#9CA3AF" style={styles.lockIcon} />
+              <Ionicons name="lock-closed" size={12} color="#FFFFFF" />
             )}
           </View>
           
-          <View style={[styles.tierBadge, { backgroundColor: TIER_COLORS[level.tier] }]}>
-            <Text style={styles.tierText}>{level.tier}</Text>
-          </View>
-        </View>
-
-        <View style={styles.levelInfo}>
           <Text style={[styles.levelTitle, !isUnlocked && styles.lockedText]}>
-            Level {level.id}
-          </Text>
-          <Text style={[styles.levelDetails, !isUnlocked && styles.lockedText]}>
-            {level.cards} cards • {level.rows}×{level.cols} grid
+            {level.cards} cards
           </Text>
           
-          {isUnlocked && (bestScore > 0 || (bestTime && bestTime !== Infinity)) && (
+          {isUnlocked && bestScore > 0 ? (
             <View style={styles.statsContainer}>
-              {bestScore > 0 && (
-                <View style={styles.scoreContainer}>
-                  <Ionicons name="star" size={14} color="#F59E0B" />
-                  <Text style={styles.scoreText}>
-                    {bestScore}/{maxPossible} pts
-                  </Text>
-                </View>
-              )}
-              {bestTime && bestTime !== Infinity && (
-                <View style={styles.timeContainer}>
-                  <Ionicons name="time" size={14} color="#8B5CF6" />
-                  <Text style={styles.timeText}>
-                    {Math.round(bestTime)}s
-                  </Text>
-                </View>
-              )}
+              <Text style={styles.scoreText}>{bestScore}/{maxPossible}</Text>
             </View>
-          )}
+          ) : null}
         </View>
-
-        <Ionicons 
-          name={isUnlocked ? "chevron-forward" : "lock-closed"} 
-          size={20} 
-          color={isUnlocked ? "#6B7280" : "#9CA3AF"} 
-        />
       </TouchableOpacity>
     );
   };
@@ -162,15 +176,17 @@ export default function LevelsScreen() {
         </ScrollView>
       </View>
 
-      {/* Levels List */}
-      {filteredLevels.length > 0 ? (
-        <FlatList
-          data={filteredLevels}
-          renderItem={renderLevel}
-          keyExtractor={(item) => item.id.toString()}
+      {/* Levels Grid */}
+      {Object.keys(groupedLevels).length > 0 ? (
+        <ScrollView 
+          style={styles.levelsContainer}
           contentContainerStyle={styles.levelsList}
           showsVerticalScrollIndicator={false}
-        />
+        >
+          {Object.entries(groupedLevels).map(([tier, levels]) => 
+            renderDifficultySection(tier, levels)
+          )}
+        </ScrollView>
       ) : (
         <View style={styles.emptyState}>
           <Ionicons name="search-outline" size={48} color="#9CA3AF" />
@@ -244,101 +260,89 @@ const styles = StyleSheet.create({
   filterChipTextActive: {
     color: '#FFFFFF',
   },
+  levelsContainer: {
+    flex: 1,
+  },
   levelsList: {
     padding: 20,
   },
-  levelCard: {
+  difficultySection: {
+    marginBottom: 24,
+  },
+  difficultyGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  gridCell: {
+    width: '31%',
+    height: 100,
     marginBottom: 12,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  levelCardLocked: {
-    backgroundColor: '#F9FAFB',
-    opacity: 0.6,
-  },
-  levelHeader: {
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  levelNumber: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  difficultyCell: {
+    backgroundColor: '#4CAF50',
     justifyContent: 'center',
-    marginBottom: 8,
+    alignItems: 'center',
   },
-  levelNumberText: {
+  difficultyText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  lockIcon: {
-    position: 'absolute',
-  },
-  lockedText: {
-    color: '#9CA3AF',
-  },
-  tierBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  tierText: {
-    fontSize: 10,
     fontWeight: 'bold',
     color: '#FFFFFF',
     textTransform: 'uppercase',
   },
-  levelInfo: {
+  levelCell: {
+    backgroundColor: '#FFFFFF',
+    padding: 8,
+  },
+  levelCellLocked: {
+    backgroundColor: '#F9FAFB',
+    opacity: 0.6,
+  },
+  emptyCell: {
+    backgroundColor: 'transparent',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  levelCellContent: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  levelNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  levelNumberText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   levelTitle: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 4,
   },
-  levelDetails: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
   statsContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
-  },
-  scoreContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 12,
   },
   scoreText: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#F59E0B',
     fontWeight: '500',
-    marginLeft: 4,
   },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeText: {
-    fontSize: 12,
-    color: '#8B5CF6',
-    fontWeight: '500',
-    marginLeft: 4,
+  lockedText: {
+    color: '#9CA3AF',
   },
   emptyState: {
     flex: 1,

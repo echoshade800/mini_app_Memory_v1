@@ -58,11 +58,11 @@ export const LEVEL_CONFIGS = [
   { id: 25, cards: 78, rows: 13, cols: 6, tier: TIERS.EXTREME }
 ];
 
-// Tier colors for UI
+// Tier colors for UI - Updated color scheme
 export const TIER_COLORS = {
-  [TIERS.EASY]: '#4CAF50',
-  [TIERS.MEDIUM]: '#FF9800',
-  [TIERS.HARD]: '#FF5722',
-  [TIERS.VERY_HARD]: '#9C27B0',
-  [TIERS.EXTREME]: '#F44336'
+  [TIERS.EASY]: '#4CAF50',      // Green
+  [TIERS.MEDIUM]: '#2196F3',    // Blue  
+  [TIERS.HARD]: '#FFC107',      // Yellow
+  [TIERS.VERY_HARD]: '#FF9800', // Orange
+  [TIERS.EXTREME]: '#F44336'    // Red
 };

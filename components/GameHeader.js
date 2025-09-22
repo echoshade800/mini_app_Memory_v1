@@ -5,35 +5,15 @@
 
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { calculateTotalScore, calculateComboSegments } from '../utils/scoring';
 
 export default function GameHeader({ 
   level, 
-  timer, 
-  pairs, 
-  totalPairs, 
-  attempts, 
-  matchHistory = [],
   onMenuPress, 
   onBackPress,
   isPreview = false,
-  previewTimer = 0
+  previewTimer = 0,
+  coins = 0
 }) {
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Calculate current total score
-  const getCurrentScore = () => {
-    if (!isPreview && matchHistory.length > 0) {
-      const comboSegments = calculateComboSegments(matchHistory);
-      const scoreData = calculateTotalScore(level, totalPairs, attempts, timer, comboSegments);
-      return scoreData.total;
-    }
-    return 0;
-  };
 
   return (
     <View style={styles.container}>
@@ -46,22 +26,13 @@ export default function GameHeader({
         </View>
         
         <View style={styles.centerInfo}>
-          {!isPreview && (
-            <View style={styles.statsInline}>
-              <View style={styles.statItem}>
-                <Ionicons name="time" size={16} color="#8B5CF6" />
-                <Text style={styles.statValue}>{formatTime(timer)}</Text>
-              </View>
-              
-              <View style={styles.statItem}>
-                <Ionicons name="star" size={16} color="#F59E0B" />
-                <Text style={styles.statValue}>{getCurrentScore()}</Text>
-              </View>
-            </View>
-          )}
+          {/* 移除时间和得分显示 */}
         </View>
         
         <View style={styles.rightSection}>
+          <View style={styles.coinDisplay}>
+            <Text style={styles.coinText}>🪙 {coins}</Text>
+          </View>
           {isPreview && (
             <View style={styles.previewTimerContainer}>
               <Text style={styles.previewTimer}>{previewTimer}</Text>
@@ -119,25 +90,6 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginLeft: 12,
   },
-  statsInline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginLeft: 4,
-  },
   previewTimerContainer: {
     backgroundColor: '#FEF3C7',
     paddingHorizontal: 16,
@@ -149,6 +101,18 @@ const styles = StyleSheet.create({
   },
   previewTimer: {
     fontSize: 20,
+    fontWeight: 'bold',
+    color: '#D97706',
+  },
+  coinDisplay: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  coinText: {
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#D97706',
   },

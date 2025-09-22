@@ -4,8 +4,8 @@
  * Extension: Add animated examples, difficulty selection, preferences setup
  */
 
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, Switch } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import useGameStore from '../store/useGameStore';
@@ -15,37 +15,52 @@ const { width: screenWidth } = Dimensions.get('window');
 const ONBOARDING_SLIDES = [
   {
     title: 'Welcome to Memory!',
-    subtitle: 'Flip, match, and climb 25 levels of emoji mayhem',
+    subtitle: 'Test your memory with emoji cards',
     icon: '🧠',
-    content: 'Test your memory skills with our challenging card matching game. Match pairs of emoji cards to clear each level and unlock new challenges!'
+    content: 'Challenge your memory skills with our card matching game. Find matching emoji pairs across 25 levels of increasing difficulty!'
   },
   {
     title: 'How to Play',
-    subtitle: 'Simple rules, endless fun',
+    subtitle: 'Two-phase gameplay',
     icon: '🃏',
-    content: 'Flip two cards at a time to find matching pairs. Remember where cards are located and clear the entire board to win. Each level gets progressively harder!'
+    content: 'First, memorize all cards during the preview phase. Then flip two cards at a time to find matching pairs. Clear the board to advance!'
   },
   {
     title: 'Scoring System',
-    subtitle: 'Accuracy, combo, and time matter',
+    subtitle: 'Three factors determine your score',
     icon: '⭐',
-    content: 'Earn points based on your accuracy, consecutive matches, and completion time. The faster and more accurate you are, the higher your score!'
+    content: 'Accuracy: Fewer attempts = higher score\nCombo: Consecutive matches boost your score\nTime: Complete faster for bonus points'
+  },
+  {
+    title: 'Power-ups & Coins',
+    subtitle: 'Use tools to help you succeed',
+    icon: '💎',
+    content: 'Earn coins from your score (1 coin per point). Buy power-ups: Bomb (50 coins), Clock (100 coins), or Skip (600 coins) to help overcome difficult levels.'
   },
   {
     title: 'Ready to Start?',
-    subtitle: 'Your memory adventure awaits',
+    subtitle: 'Your memory adventure begins',
     icon: '🚀',
-    content: 'Start with Level 1 and work your way through 25 increasingly challenging levels. Good luck, and have fun!'
+    content: 'Start with Level 1 and progress through 5 difficulty tiers: Easy (green), Medium (blue), Hard (yellow), Very Hard (orange), and Extreme (red). Good luck!'
   }
 ];
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { setTutorialSeen } = useGameStore();
+  const params = useLocalSearchParams();
+  const { setTutorialSeen, toggleOnboarding, gameData } = useGameStore();
   const [currentPage, setCurrentPage] = useState(0);
+  const [showOnboardingInFuture, setShowOnboardingInFuture] = useState(true);
+  
+  // 检查是否是首次登录（通过路由参数或seenTutorial状态判断）
+  const isFirstTime = params.firstTime === 'true' || !gameData.seenTutorial;
 
   const handleGetStarted = async () => {
     await setTutorialSeen();
+    // 只在首次登录时处理onboarding设置
+    if (isFirstTime) {
+      await toggleOnboarding(showOnboardingInFuture);
+    }
     // 跳转到关卡选择界面
     router.push('/(tabs)/levels');
   };
@@ -96,6 +111,20 @@ export default function OnboardingScreen() {
             <Text style={styles.title}>{ONBOARDING_SLIDES[currentPage].title}</Text>
             <Text style={styles.subtitle}>{ONBOARDING_SLIDES[currentPage].subtitle}</Text>
             <Text style={styles.description}>{ONBOARDING_SLIDES[currentPage].content}</Text>
+            
+            {currentPage === ONBOARDING_SLIDES.length - 1 && isFirstTime && (
+              <View style={styles.settingsContainer}>
+                <View style={styles.settingRow}>
+                  <Text style={styles.settingLabel}>Don't show this again</Text>
+                  <Switch
+                    value={!showOnboardingInFuture}
+                    onValueChange={(value) => setShowOnboardingInFuture(!value)}
+                    trackColor={{ false: '#E5E7EB', true: '#3B82F6' }}
+                    thumbColor={!showOnboardingInFuture ? '#FFFFFF' : '#FFFFFF'}
+                  />
+                </View>
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -207,6 +236,26 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
+  },
+  settingsContainer: {
+    marginTop: 30,
+    paddingHorizontal: 20,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  settingLabel: {
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '500',
   },
   navigation: {
     paddingHorizontal: 20,

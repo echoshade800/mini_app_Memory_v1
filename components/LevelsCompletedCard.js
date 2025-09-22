@@ -2,6 +2,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LevelsCompletedCard({ count = 0 }) {
+  const totalLevels = 25;
+  const percentage = Math.round((count / totalLevels) * 100);
+  
   return (
     <View style={styles.card}>
       <View style={styles.iconWrap}>
@@ -15,6 +18,9 @@ export default function LevelsCompletedCard({ count = 0 }) {
       <View style={styles.labelContainer}>
         <Text style={styles.label} numberOfLines={1} allowFontScaling>
           Levels Completed
+        </Text>
+        <Text style={styles.percentage} numberOfLines={1} allowFontScaling>
+          {percentage}%
         </Text>
       </View>
     </View>
@@ -69,6 +75,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#6B7280',
     flexShrink: 1, // prevent overflow on small screens
+    textAlign: 'left',
+  },
+  percentage: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '700',
+    color: '#10B981',
+    marginTop: 2,
     textAlign: 'left',
   },
 });

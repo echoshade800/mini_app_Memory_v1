@@ -15,7 +15,7 @@ const FAQ_ITEMS = [
   },
   {
     question: 'How is my score calculated?',
-    answer: 'Your score is based on three factors: Performance (accuracy), Combo (consecutive matches), and Time (how fast you complete the level).'
+    answer: 'Your score is based on three factors: Accuracy (how many correct matches you make), Combo (consecutive correct matches), and Time (how fast you complete the level).'
   },
   {
     question: 'What happens if I run out of time?',

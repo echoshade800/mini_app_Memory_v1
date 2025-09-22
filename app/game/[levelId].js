@@ -16,11 +16,13 @@ import useGameStore from '../../store/useGameStore';
 import GameHeader from '../../components/GameHeader';
 import GameGrid from '../../components/GameGrid';
 import ScoreProgressBars from '../../components/ScoreProgressBars';
+import ComboDisplay from '../../components/ComboDisplay';
+import PowerupBar from '../../components/PowerupBar';
 
 export default function GameScreen() {
   const router = useRouter();
   const { levelId, color } = useLocalSearchParams();
-  const { completeLevel } = useGameStore();
+  const { completeLevel, usePowerup, gameData } = useGameStore();
   
   const level = LEVEL_CONFIGS.find(l => l.id === parseInt(levelId, 10));
   const cardColorIndex = (parseInt(levelId, 10) - 1) % CARD_COLORS.length;
@@ -37,6 +39,11 @@ export default function GameScreen() {
   const [matchHistory, setMatchHistory] = useState([]);
   const [showScoreAnimation, setShowScoreAnimation] = useState(false);
   const [finalScoreData, setFinalScoreData] = useState(null);
+  const [currentCombo, setCurrentCombo] = useState(0);
+  const [showCombo, setShowCombo] = useState(false);
+  
+  // 道具相关状态
+  const [cardPositions, setCardPositions] = useState([]);
   
   // Refs
   const timerRef = useRef(null);
@@ -100,6 +107,8 @@ export default function GameScreen() {
     setAttempts(0);
     setTimer(0);
     setMatchHistory([]);
+    setCurrentCombo(0);
+    setShowCombo(false);
     setGameState('preview');
     
     // Start preview timer
@@ -153,6 +162,15 @@ export default function GameScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
       
+      // Update combo count
+      const newCombo = currentCombo + 1;
+      setCurrentCombo(newCombo);
+      
+      // Show combo display if it's 2 or more
+      if (newCombo >= 2) {
+        setShowCombo(true);
+      }
+      
       const newMatchedCards = [...matchedCards, first, second];
       setMatchedCards(newMatchedCards);
       setFlippedCards([]);
@@ -163,7 +181,9 @@ export default function GameScreen() {
         completeGame(updatedMatchHistory, attempts + 1);
       }
     } else {
-      // No match - flip cards back after delay
+      // No match - reset combo and flip cards back after delay
+      setCurrentCombo(0);
+      setShowCombo(false);
       flipTimeoutRef.current = setTimeout(() => {
         setFlippedCards([]);
       }, 1000);
@@ -216,6 +236,118 @@ export default function GameScreen() {
     }
   };
 
+  const handleComboAnimationComplete = () => {
+    setShowCombo(false);
+  };
+
+  // 道具使用逻辑
+  const handleUsePowerup = async (powerupType) => {
+    // 道具已经在PowerupBar中消耗了，这里直接执行功能
+    switch (powerupType) {
+      case 'bomb':
+        handleBombPowerup();
+        break;
+      case 'clock':
+        handleClockPowerup();
+        break;
+      case 'skip':
+        handleSkipPowerup();
+        break;
+    }
+  };
+
+  // 炸弹道具：随机移除一对未配对的卡牌
+  const handleBombPowerup = () => {
+    console.log('💣 炸弹道具被激活');
+    
+    // 找到所有未配对的卡牌
+    const unmatchedCards = [];
+    for (let i = 0; i < cards.length; i++) {
+      if (!matchedCards.includes(i)) {
+        unmatchedCards.push(i);
+      }
+    }
+
+    console.log(`💣 未配对卡牌数量: ${unmatchedCards.length}`);
+
+    if (unmatchedCards.length < 2) {
+      Alert.alert('Bomb Powerup', 'Not enough cards to remove!');
+      return;
+    }
+
+    // 找到所有可能的配对
+    const possiblePairs = [];
+    for (let i = 0; i < unmatchedCards.length; i++) {
+      for (let j = i + 1; j < unmatchedCards.length; j++) {
+        const card1 = unmatchedCards[i];
+        const card2 = unmatchedCards[j];
+        if (cards[card1].emoji === cards[card2].emoji) {
+          possiblePairs.push([card1, card2]);
+        }
+      }
+    }
+
+    console.log(`💣 找到 ${possiblePairs.length} 个可能的配对`);
+
+    if (possiblePairs.length > 0) {
+      // 随机选择一对进行移除（标记为已匹配）
+      const randomPair = possiblePairs[Math.floor(Math.random() * possiblePairs.length)];
+      const newMatchedCards = [...matchedCards, ...randomPair];
+      setMatchedCards(newMatchedCards);
+      
+      console.log(`💣 移除了配对: ${cards[randomPair[0]].emoji} (位置: ${randomPair[0]}, ${randomPair[1]})`);
+      
+      // Show removal effect
+      Alert.alert('Bomb Powerup', `Successfully removed ${cards[randomPair[0]].emoji} pair!`);
+      
+      // Check if game is complete
+      if (newMatchedCards.length === level.cards) {
+        completeGame(matchHistory, attempts);
+      }
+    } else {
+      console.log('💣 没有找到可以移除的配对');
+      Alert.alert('Bomb Powerup', 'No matching pairs found to remove!');
+    }
+  };
+
+
+  // 时钟道具：翻开所有卡牌5秒后翻转
+  const handleClockPowerup = () => {
+    // 显示所有未匹配的卡牌
+    const unmatchedCards = [];
+    for (let i = 0; i < cards.length; i++) {
+      if (!matchedCards.includes(i)) {
+        unmatchedCards.push(i);
+      }
+    }
+    
+    setFlippedCards(unmatchedCards);
+    
+    // 5秒后翻转回去
+    setTimeout(() => {
+      setFlippedCards([]);
+    }, 5000);
+  };
+
+  // Skip powerup: directly complete the current level
+  const handleSkipPowerup = () => {
+    Alert.alert(
+      'Skip Level',
+      'Are you sure you want to skip the current level?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Skip', 
+          onPress: () => {
+            // Directly complete the game
+            completeGame([], 0);
+          }
+        }
+      ]
+    );
+  };
+
+
   const handleMenuPress = () => {
     Alert.alert(
       'Game Menu',
@@ -255,15 +387,11 @@ export default function GameScreen() {
     <View style={styles.container}>
       <GameHeader
         level={level.id}
-        timer={timer}
-        pairs={matchedCards.length / 2}
-        totalPairs={level.cards / 2}
-        attempts={attempts}
-        matchHistory={matchHistory}
         onMenuPress={handleMenuPress}
         onBackPress={handleBackPress}
         isPreview={isPreviewMode}
         previewTimer={previewTimer}
+        coins={gameData.coins}
       />
 
 
@@ -287,10 +415,27 @@ export default function GameScreen() {
         rows={level.rows}
         cols={level.cols}
         cardColor={cardColor}
+        levelTier={level.tier}
         isPreview={isPreviewMode}
         levelId={level.id}
         headerBottomY={118} // 头部下边缘位置，为2px上边距预留空间
+        onCardPositionsChange={setCardPositions}
+        powerupBarHeight={82} // 道具栏高度，为底部留出空间
       />
+
+      <ComboDisplay
+        combo={currentCombo}
+        visible={showCombo}
+        onAnimationComplete={handleComboAnimationComplete}
+      />
+
+
+      <PowerupBar
+        onUsePowerup={handleUsePowerup}
+        gameState={gameState}
+        disabled={isGameDisabled}
+      />
+
 
       {gameState === 'completed' && (
         <View style={styles.completedOverlay}>

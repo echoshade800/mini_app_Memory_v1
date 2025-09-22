@@ -15,7 +15,7 @@ import LevelsCompletedCard from '../../components/LevelsCompletedCard';
 export default function HomeScreen() {
   const router = useRouter();
   const [isRouterReady, setIsRouterReady] = useState(false);
-  const { gameData, isLoading, error, initialize } = useGameStore();
+  const { gameData, isLoading, error, initialize, toggleOnboarding } = useGameStore();
 
   useEffect(() => {
     // Wait for router to be ready
@@ -30,11 +30,11 @@ export default function HomeScreen() {
   }, [router]);
 
   useEffect(() => {
-    // Show onboarding if first time
-    if (isRouterReady && !isLoading && !gameData.seenTutorial) {
-      router.push('/onboarding');
+    // Show onboarding if first time and onboarding is enabled
+    if (isRouterReady && !isLoading && !gameData.seenTutorial && gameData.showOnboarding) {
+      router.push('/onboarding?firstTime=true');
     }
-  }, [gameData.seenTutorial, isRouterReady, isLoading, router]);
+  }, [gameData.seenTutorial, gameData.showOnboarding, isRouterReady, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -64,20 +64,25 @@ export default function HomeScreen() {
     }
   };
 
-  const handleTutorial = () => {
+  const handleShowOnboarding = () => {
     router.push('/onboarding');
   };
+
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Memory</Text>
-        <Text style={styles.subtitle}>Flip, match, and climb 25 levels of emoji mayhem</Text>
-        
-        <TouchableOpacity style={styles.tutorialButton} onPress={handleTutorial}>
-          <Ionicons name="help-circle-outline" size={20} color="#3B82F6" />
-          <Text style={styles.tutorialText}>Tutorial</Text>
-        </TouchableOpacity>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Memory</Text>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.settingsButton} onPress={handleShowOnboarding}>
+              <Ionicons name="help-circle-outline" size={24} color="#6B7280" />
+            </TouchableOpacity>
+            <View style={styles.coinDisplay}>
+              <Text style={styles.coinText}>🪙 {gameData.coins}</Text>
+            </View>
+          </View>
+        </View>
       </View>
 
       {/* Summary Cards */}
@@ -171,28 +176,38 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     alignItems: 'center',
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 8,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  settingsButton: {
+    padding: 8,
+    marginRight: 12,
+  },
+  coinDisplay: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  coinText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#D97706',
+  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  tutorialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-  },
-  tutorialText: {
-    color: '#3B82F6',
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 4,
   },
   summaryContainer: {
     marginBottom: 30,

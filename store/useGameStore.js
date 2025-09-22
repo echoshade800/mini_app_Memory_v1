@@ -15,7 +15,14 @@ const useGameStore = create((set, get) => ({
     scoresByLevel: {},
     timesByLevel: {},
     seenTutorial: false,
-    recentRuns: []
+    showOnboarding: true, // 控制是否显示新手引导
+    recentRuns: [],
+    coins: 0, // 金币数量
+    powerups: { // 道具库存
+      bomb: 0,      // 炸弹
+      clock: 0,     // 时钟
+      skip: 0       // 跳过
+    }
   },
   
   // Current game state
@@ -36,13 +43,27 @@ const useGameStore = create((set, get) => ({
         scoresByLevel: gameData.scoresByLevel || {},
         timesByLevel: gameData.timesByLevel || {},
         seenTutorial: gameData.seenTutorial || false,
-        recentRuns: gameData.recentRuns || []
+        showOnboarding: gameData.showOnboarding !== undefined ? gameData.showOnboarding : true,
+        recentRuns: gameData.recentRuns || [],
+        coins: gameData.coins || 0,
+        powerups: gameData.powerups || {
+          bomb: 0,
+          clock: 0,
+          skip: 0
+        }
       } : {
         maxLevel: 1,
         scoresByLevel: {},
         timesByLevel: {},
         seenTutorial: false,
-        recentRuns: []
+        showOnboarding: true,
+        recentRuns: [],
+        coins: 0,
+        powerups: {
+          bomb: 0,
+          clock: 0,
+          skip: 0
+        }
       };
       
       set({
@@ -75,13 +96,18 @@ const useGameStore = create((set, get) => ({
     await get().updateProgress({ seenTutorial: true });
   },
 
+  // Toggle onboarding visibility
+  toggleOnboarding: async (show) => {
+    await get().updateProgress({ showOnboarding: show });
+  },
+
   // Complete a level
   completeLevel: async (levelId, score, durationSec) => {
     const currentData = get().gameData;
     const updates = {};
     
     // Update max level if this level unlocks the next
-    if (levelId >= currentData.maxLevel && levelId < 25) {
+    if (levelId >= currentData.maxLevel && levelId <= 25) {
       updates.maxLevel = levelId + 1;
     }
     
@@ -114,6 +140,9 @@ const useGameStore = create((set, get) => ({
     
     updates.recentRuns = [newRun, ...(currentData.recentRuns || [])].slice(0, 10);
     
+    // 根据得分获得金币，每1分获得1个金币
+    updates.coins = currentData.coins + score.total;
+    
     await get().updateProgress(updates);
   },
 
@@ -138,7 +167,68 @@ const useGameStore = create((set, get) => ({
   setCurrentGame: (game) => set({ currentGame: game }),
 
   // Clear current game
-  clearCurrentGame: () => set({ currentGame: null })
+  clearCurrentGame: () => set({ currentGame: null }),
+
+  // 添加金币
+  addCoins: async (amount) => {
+    const currentData = get().gameData;
+    const newCoins = currentData.coins + amount;
+    await get().updateProgress({ coins: newCoins });
+  },
+
+  // 消费金币
+  spendCoins: async (amount) => {
+    const currentData = get().gameData;
+    if (currentData.coins >= amount) {
+      const newCoins = currentData.coins - amount;
+      await get().updateProgress({ coins: newCoins });
+      return true;
+    }
+    return false;
+  },
+
+  // 购买道具
+  buyPowerup: async (powerupType) => {
+    const powerupPrices = {
+      bomb: 50,
+      clock: 100,
+      skip: 600
+    };
+    
+    const price = powerupPrices[powerupType];
+    if (!price) return false;
+    
+    const currentData = get().gameData;
+    if (currentData.coins >= price) {
+      const newCoins = currentData.coins - price;
+      const newPowerups = {
+        ...currentData.powerups,
+        [powerupType]: currentData.powerups[powerupType] + 1
+      };
+      
+      await get().updateProgress({ 
+        coins: newCoins,
+        powerups: newPowerups
+      });
+      return true;
+    }
+    return false;
+  },
+
+  // 使用道具
+  usePowerup: async (powerupType) => {
+    const currentData = get().gameData;
+    if (currentData.powerups[powerupType] > 0) {
+      const newPowerups = {
+        ...currentData.powerups,
+        [powerupType]: currentData.powerups[powerupType] - 1
+      };
+      
+      await get().updateProgress({ powerups: newPowerups });
+      return true;
+    }
+    return false;
+  }
 }));
 
 export default useGameStore;

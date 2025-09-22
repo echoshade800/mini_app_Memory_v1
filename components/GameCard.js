@@ -3,8 +3,9 @@
  * Renders individual memory cards with flip animations and emoji faces
  */
 
-import { TouchableOpacity, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, Animated, Dimensions, Image } from 'react-native';
 import { useEffect, useRef } from 'react';
+import { TIER_COLORS } from '../constants/levels';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -16,7 +17,10 @@ export default function GameCard({
   disabled, 
   cardWidth, 
   cardHeight,
-  cardColor 
+  cardColor,
+  cardBackImage,
+  levelTier,
+  onLayout 
 }) {
   const flipAnimation = useRef(new Animated.Value(0)).current;
   const scaleAnimation = useRef(new Animated.Value(1)).current;
@@ -87,11 +91,28 @@ export default function GameCard({
     <TouchableOpacity
       style={[styles.cardContainer, cardStyle]}
       onPress={onPress}
+      onLayout={onLayout}
       disabled={disabled || isFlipped || isMatched}
       activeOpacity={0.8}
     >
       {/* Card Back (face down) */}
       <Animated.View style={[styles.card, styles.cardBack, frontStyle]}>
+        {cardBackImage ? (
+          <Image 
+            source={cardBackImage} 
+            style={styles.cardBackImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.cardBackFallback, { backgroundColor: levelTier ? TIER_COLORS[levelTier] : '#6B7280' }]}>
+            <Text style={styles.cardPattern}>?</Text>
+            {levelTier && (
+              <Text style={styles.tierLabel}>
+                {levelTier.toUpperCase()}
+              </Text>
+            )}
+          </View>
+        )}
       </Animated.View>
 
       {/* Card Front (emoji face) */}
@@ -126,6 +147,19 @@ const styles = StyleSheet.create({
   cardBack: {
     borderWidth: 2,
     borderColor: '#FFFFFF',
+    overflow: 'hidden',
+  },
+  cardBackImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 6,
+  },
+  cardBackFallback: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardFront: {
     backgroundColor: '#FFFFFF',
@@ -137,6 +171,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
     opacity: 0.8,
+    marginBottom: 2,
+  },
+  tierLabel: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    opacity: 0.9,
+    textAlign: 'center',
   },
   emoji: {
     fontWeight: 'normal',

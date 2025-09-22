@@ -6,6 +6,7 @@
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GameCard from './GameCard';
+import { getCardBackImage } from '../constants/cardBacks';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -18,15 +19,27 @@ export default function GameGrid({
   rows, 
   cols,
   cardColor,
+  levelTier,
   isPreview = false,
   levelId = 1, // Add levelId to identify problem levels
-  headerBottomY = 0 // Y position of header bottom edge (倒计时/提示条的下边缘)
+  headerBottomY = 0, // Y position of header bottom edge (倒计时/提示条的下边缘)
+  onCardPositionsChange, // 回调函数，用于传递卡牌位置信息
+  powerupBarHeight = 0 // 道具栏高度，为底部留出空间
 }) {
   // Get safe area insets
   const insets = useSafeAreaInsets();
   
+  // Get card back image for this difficulty tier
+  const cardBackImage = levelTier ? getCardBackImage(levelTier) : null;
+  
   // Check if this level needs special handling (rows >= 1.8 * cols)
   const isTallLevel = rows >= 1.8 * cols;
+  
+  // Check if this is one of the specific levels that needs right space optimization
+  const needsRightSpaceOptimization = [3, 5, 9].includes(levelId);
+  
+  // Check if this is level 2 that needs vertical space optimization
+  const needsVerticalSpaceOptimization = levelId === 2;
   
   // Calculate safe area bounds for card container (黑线标出的区域)
   const calculateSafeAreaBounds = () => {
@@ -34,9 +47,9 @@ export default function GameGrid({
     const topMargin = 2; // 上边距
     const topBound = headerBottomY + topMargin;
     
-    // 下边界 = 屏幕底部 - 2px 下边距
+    // 下边界 = 屏幕底部 - 道具栏高度 - 2px 下边距
     const bottomMargin = 2; // 下边距
-    const bottomBound = screenHeight - bottomMargin;
+    const bottomBound = screenHeight - powerupBarHeight - bottomMargin;
     
     // 左右边距设为0px，让网格完全贴合屏幕边缘
     const leftBound = insets.left;
@@ -103,6 +116,20 @@ export default function GameGrid({
   let baseCardWidth = Math.floor((availableWidth - (cardMargin * (cols - 1))) / cols);
   let baseCardHeight = Math.floor((availableHeight - (cardMargin * (rows - 1))) / rows);
   
+  // Special optimization for levels 3, 5, 9 to fill right space
+  if (needsRightSpaceOptimization) {
+    // For these levels, prioritize using full width to fill right space
+    baseCardWidth = Math.floor(availableWidth / cols);
+    baseCardHeight = Math.floor(availableHeight / rows);
+  }
+  
+  // Special optimization for level 2 to fill vertical space between grid and powerup bar
+  if (needsVerticalSpaceOptimization) {
+    // For level 2, prioritize using full height to fill vertical space
+    baseCardWidth = Math.floor((availableWidth - (cardMargin * (cols - 1))) / cols);
+    baseCardHeight = Math.floor(availableHeight / rows);
+  }
+  
   // Calculate target area per card (黑线区域面积 / 卡牌总数)
   const targetCardArea = targetVisualAreaPerCard;
   
@@ -117,8 +144,18 @@ export default function GameGrid({
   const maxWidth = Math.floor((availableWidth - (cardMargin * (cols - 1))) / cols);
   const maxHeight = Math.floor((availableHeight - (cardMargin * (rows - 1))) / rows);
   
-  optimizedCardWidth = Math.min(optimizedCardWidth, maxWidth);
-  optimizedCardHeight = Math.min(optimizedCardHeight, maxHeight);
+  // For levels 3, 5, 9, use maximum available width to fill right space
+  if (needsRightSpaceOptimization) {
+    optimizedCardWidth = maxWidth;
+    optimizedCardHeight = Math.min(optimizedCardHeight, maxHeight);
+  } else if (needsVerticalSpaceOptimization) {
+    // For level 2, use maximum available height to fill vertical space
+    optimizedCardWidth = Math.min(optimizedCardWidth, maxWidth);
+    optimizedCardHeight = maxHeight;
+  } else {
+    optimizedCardWidth = Math.min(optimizedCardWidth, maxWidth);
+    optimizedCardHeight = Math.min(optimizedCardHeight, maxHeight);
+  }
   
   // For tall levels, prioritize vertical space utilization
   if (isTallLevel) {
@@ -161,17 +198,26 @@ export default function GameGrid({
                               squareUtilization < 0.8;
   
   // Debug logging (uncomment for debugging)
-  // if (__DEV__) {
-  //   console.log(`Level ${levelId}: ${rows}x${cols}, Available: ${availableWidth}x${availableHeight}`);
-  //   console.log(`  Square: ${squareSize}x${squareSize}, Utilization: ${(squareUtilization * 100).toFixed(1)}%`);
-  //   console.log(`  Rect: ${rectWidth}x${rectHeight}, Utilization: ${(rectUtilization * 100).toFixed(1)}%`);
-  //   console.log(`  Using: ${shouldUseRectangular ? 'Rectangular' : 'Square'}`);
-  // }
+  if (__DEV__ && (needsRightSpaceOptimization || needsVerticalSpaceOptimization)) {
+    const optimizationType = needsRightSpaceOptimization ? 'Right Space' : 'Vertical Space';
+    console.log(`Level ${levelId} (${optimizationType} Optimization): ${rows}x${cols}, Available: ${availableWidth}x${availableHeight}`);
+    console.log(`  Final Card Size: ${finalCardWidth}x${finalCardHeight}`);
+    console.log(`  Max Width: ${maxWidth}, Max Height: ${maxHeight}`);
+    console.log(`  Space Utilization: ${((finalCardWidth * finalCardHeight * rows * cols) / (availableWidth * availableHeight) * 100).toFixed(1)}%`);
+  }
   
   let finalCardWidth = optimizedCardWidth;
   let finalCardHeight = optimizedCardHeight;
   
-  if (isTallLevel) {
+  if (needsRightSpaceOptimization) {
+    // For levels 3, 5, 9, prioritize filling the right space
+    finalCardWidth = maxWidth;
+    finalCardHeight = Math.min(optimizedCardHeight, maxHeight);
+  } else if (needsVerticalSpaceOptimization) {
+    // For level 2, prioritize filling the vertical space between grid and powerup bar
+    finalCardWidth = Math.min(optimizedCardWidth, maxWidth);
+    finalCardHeight = maxHeight;
+  } else if (isTallLevel) {
     // For tall levels, use the optimized dimensions we calculated above
     finalCardWidth = optimizedCardWidth;
     finalCardHeight = optimizedCardHeight;
@@ -231,6 +277,19 @@ export default function GameGrid({
         cardWidth={finalCardWidth}
         cardHeight={finalCardHeight}
         cardColor={cardColor}
+        cardBackImage={cardBackImage}
+        levelTier={levelTier}
+        onLayout={(event) => {
+          // 获取卡牌位置信息
+          const { x, y, width, height } = event.nativeEvent.layout;
+          if (onCardPositionsChange) {
+            onCardPositionsChange(prev => {
+              const newPositions = [...(prev || [])];
+              newPositions[index] = { x, y, width, height };
+              return newPositions;
+            });
+          }
+        }}
       />
     );
   };
