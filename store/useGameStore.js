@@ -18,11 +18,6 @@ const useGameStore = create((set, get) => ({
     showOnboarding: true, // 控制是否显示新手引导
     recentRuns: [],
     coins: 0, // 金币数量
-    powerups: { // 道具库存
-      bomb: 0,      // 炸弹
-      clock: 0,     // 时钟
-      skip: 0       // 跳过
-    }
   },
   
   // Loading state
@@ -45,11 +40,6 @@ const useGameStore = create((set, get) => ({
         showOnboarding: gameData.showOnboarding !== undefined ? gameData.showOnboarding : true,
         recentRuns: gameData.recentRuns || [],
         coins: gameData.coins || 0,
-        powerups: gameData.powerups || {
-          bomb: 0,
-          clock: 0,
-          skip: 0
-        }
       } : {
         maxLevel: 1,
         scoresByLevel: {},
@@ -58,11 +48,6 @@ const useGameStore = create((set, get) => ({
         showOnboarding: true,
         recentRuns: [],
         coins: 0,
-        powerups: {
-          bomb: 0,
-          clock: 0,
-          skip: 0
-        }
       };
       
       set({
@@ -181,48 +166,6 @@ const useGameStore = create((set, get) => ({
     return false;
   },
 
-  // 购买道具
-  buyPowerup: async (powerupType) => {
-    const powerupPrices = {
-      bomb: 50,
-      clock: 100,
-      skip: 600
-    };
-    
-    const price = powerupPrices[powerupType];
-    if (!price) return false;
-    
-    const currentData = get().gameData;
-    if (currentData.coins >= price) {
-      const newCoins = currentData.coins - price;
-      const newPowerups = {
-        ...currentData.powerups,
-        [powerupType]: currentData.powerups[powerupType] + 1
-      };
-      
-      await get().updateProgress({ 
-        coins: newCoins,
-        powerups: newPowerups
-      });
-      return true;
-    }
-    return false;
-  },
-
-  // 使用道具
-  usePowerup: async (powerupType) => {
-    const currentData = get().gameData;
-    if (currentData.powerups[powerupType] > 0) {
-      const newPowerups = {
-        ...currentData.powerups,
-        [powerupType]: currentData.powerups[powerupType] - 1
-      };
-      
-      await get().updateProgress({ powerups: newPowerups });
-      return true;
-    }
-    return false;
-  }
 }));
 
 export default useGameStore;

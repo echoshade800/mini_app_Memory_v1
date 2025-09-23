@@ -289,9 +289,26 @@ export default function GameScreen() {
       const newMatchedCards = [...matchedCards, ...randomPair];
       setMatchedCards(newMatchedCards);
       
+      // 更新matchHistory，记录bomb成功配对（true表示成功配对）
+      const updatedMatchHistory = [...matchHistory, true];
+      setMatchHistory(updatedMatchHistory);
+      
+      // 更新attempts计数（bomb使用也算一次尝试）
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      
+      // 更新combo状态
+      const newCombo = currentCombo + 1;
+      setCurrentCombo(newCombo);
+      
+      // Show combo display if it's 2 or more
+      if (newCombo >= 2) {
+        setShowCombo(true);
+      }
+      
       // Check if game is complete
       if (newMatchedCards.length === level.cards) {
-        completeGame(matchHistory, attempts);
+        completeGame(updatedMatchHistory, newAttempts);
       }
     } else {
       Alert.alert('Bomb Powerup', 'No matching pairs found to remove!');

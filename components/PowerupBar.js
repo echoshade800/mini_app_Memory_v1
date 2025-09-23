@@ -42,41 +42,17 @@ export default function PowerupBar({
   gameState, 
   disabled = false 
 }) {
-  const { gameData, buyPowerup, usePowerup } = useGameStore();
+  const { gameData, spendCoins } = useGameStore();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePowerupAction = async (powerupType) => {
     if (disabled || gameState !== 'playing' || isProcessing) return;
     
     const config = POWERUP_CONFIGS[powerupType];
-    const count = gameData.powerups[powerupType];
     const canAfford = gameData.coins >= config.price;
     
-    if (count > 0) {
-      // Have powerup, use directly
-      Alert.alert(
-        `Use ${config.name}`,
-        `${config.description}\n\nAre you sure you want to use this powerup?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Use', 
-            onPress: async () => {
-              setIsProcessing(true);
-              try {
-                const success = await usePowerup(powerupType);
-                if (success) {
-                  await onUsePowerup(powerupType);
-                }
-              } finally {
-                setIsProcessing(false);
-              }
-            }
-          }
-        ]
-      );
-    } else if (canAfford) {
-      // No powerup but have coins, ask to buy
+    if (canAfford) {
+      // Show confirmation dialog
       Alert.alert(
         `Use ${config.name}?`,
         `${config.description}\n\nPrice: ${config.price} coins`,
@@ -87,12 +63,9 @@ export default function PowerupBar({
             onPress: async () => {
               setIsProcessing(true);
               try {
-                const buySuccess = await buyPowerup(powerupType);
-                if (buySuccess) {
-                  const useSuccess = await usePowerup(powerupType);
-                  if (useSuccess) {
-                    await onUsePowerup(powerupType);
-                  }
+                const spendSuccess = await spendCoins(config.price);
+                if (spendSuccess) {
+                  await onUsePowerup(powerupType);
                 } else {
                   Alert.alert('Purchase Failed', 'Not enough coins!');
                 }
@@ -104,10 +77,10 @@ export default function PowerupBar({
         ]
       );
     } else {
-      // No powerup and no coins
+      // Not enough coins
       Alert.alert(
-        'Powerup Unavailable',
-        `You don't have ${config.name} powerup and don't have enough coins!\n\nNeed ${config.price} coins to buy.`,
+        'Insufficient Coins',
+        `You need ${config.price} coins to use ${config.name}.`,
         [{ text: 'OK', style: 'default' }]
       );
     }
@@ -115,8 +88,6 @@ export default function PowerupBar({
 
   const renderPowerupButton = (powerupType) => {
     const config = POWERUP_CONFIGS[powerupType];
-    const count = gameData.powerups[powerupType];
-    const hasPowerup = count > 0;
     const canAfford = gameData.coins >= config.price;
     const canUse = !disabled && gameState === 'playing' && !isProcessing;
     
@@ -126,8 +97,6 @@ export default function PowerupBar({
     
     if (!canUse) {
       buttonStyle = [styles.powerupButton, styles.powerupButtonDisabled];
-    } else if (hasPowerup) {
-      buttonStyle = [styles.powerupButton, styles.powerupButtonOwned];
     } else if (canAfford) {
       buttonStyle = [styles.powerupButton, styles.powerupButtonCanBuy];
     } else {
@@ -147,13 +116,11 @@ export default function PowerupBar({
           {config.emoji}
         </Text>
         <Text style={countStyle}>
-          {hasPowerup ? count : (canAfford ? '💰' : '❌')}
+          💰
         </Text>
-        {!hasPowerup && (
-          <Text style={styles.priceText}>
-            {config.price}
-          </Text>
-        )}
+        <Text style={styles.priceText}>
+          {config.price}
+        </Text>
       </TouchableOpacity>
     );
   };
