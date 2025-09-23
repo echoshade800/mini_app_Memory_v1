@@ -5,6 +5,7 @@
 
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function GameHeader({ 
   level, 
@@ -14,9 +15,10 @@ export default function GameHeader({
   previewTimer = 0,
   coins = 0
 }) {
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top + 10, 50) }]}>
       <View style={styles.topRow}>
         <View style={styles.leftSection}>
           <TouchableOpacity style={styles.iconButton} onPress={onBackPress}>

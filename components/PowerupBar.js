@@ -12,6 +12,7 @@ import {
   Alert,
   Dimensions 
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useGameStore from '../store/useGameStore';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -44,6 +45,7 @@ export default function PowerupBar({
 }) {
   const { gameData, spendCoins } = useGameStore();
   const [isProcessing, setIsProcessing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handlePowerupAction = async (powerupType) => {
     if (disabled || gameState !== 'playing' || isProcessing) return;
@@ -126,7 +128,7 @@ export default function PowerupBar({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom + 16, 16) }]}>
       <View style={styles.powerupGrid}>
         {Object.keys(POWERUP_CONFIGS).map(renderPowerupButton)}
       </View>

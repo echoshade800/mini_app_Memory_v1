@@ -3,7 +3,7 @@
  * Renders the grid layout for memory game cards
  */
 
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GameCard from './GameCard';
 import { getCardBackImage } from '../constants/cardBacks';
@@ -35,21 +35,25 @@ export default function GameGrid({
   
   // Calculate safe area bounds for card container
   const calculateSafeAreaBounds = () => {
-    // 上边界 = 倒计时/提示条的下边缘 + 2px 上边距
-    const topMargin = 2;
+    // 检测是否在宿主app环境中运行
+    const isHostApp = !__DEV__ || Platform.OS === 'web';
+    
+    // 在宿主app中，安全区域可能不同，需要更灵活的计算
+    const topMargin = isHostApp ? 0 : 2; // 宿主app中减少上边距
     const topBound = headerBottomY + topMargin;
     
-    // 下边界 = 屏幕底部 - 道具栏高度 - 2px 下边距
-    const bottomMargin = 2;
+    // 下边界 = 屏幕底部 - 道具栏高度 - 安全区域底部
+    const bottomMargin = isHostApp ? 0 : 2; // 宿主app中减少下边距
     const bottomBound = screenHeight - powerupBarHeight - bottomMargin;
     
-    // 左右边距设为0px，让网格完全贴合屏幕边缘
-    const leftBound = insets.left;
-    const rightBound = screenWidth - insets.right;
+    // 左右边距考虑安全区域，但确保最小可用空间
+    const minHorizontalMargin = isHostApp ? 4 : 8;
+    const leftBound = Math.max(insets.left, minHorizontalMargin);
+    const rightBound = screenWidth - Math.max(insets.right, minHorizontalMargin);
     
     // 计算安全区域内的可用尺寸
     const safeAreaWidth = rightBound - leftBound;
-    const safeAreaHeight = bottomBound - topBound;
+    const safeAreaHeight = Math.max(bottomBound - topBound, 200); // 确保最小高度
     
     return {
       top: topBound,
@@ -81,8 +85,8 @@ export default function GameGrid({
   const finalHeight = Math.max(finalCardHeight, minCardSize);
 
   const renderCard = (card, index) => {
-    const isFlipped = flippedCards.includes(index) || matchedCards.includes(index);
     const isMatched = matchedCards.includes(index);
+    const isFlipped = flippedCards.includes(index) || isMatched;
 
     return (
       <GameCard

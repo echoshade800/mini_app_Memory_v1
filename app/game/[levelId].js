@@ -7,6 +7,7 @@
 import { View, Text, StyleSheet, Alert, BackHandler, TouchableOpacity, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { LEVEL_CONFIGS, EMOJI_POOL, CARD_COLORS } from '../../constants/levels';
 import { previewTimeSec, calculateTotalScore, calculateComboSegments } from '../../utils/scoring';
@@ -21,6 +22,7 @@ export default function GameScreen() {
   const router = useRouter();
   const { levelId } = useLocalSearchParams();
   const { completeLevel, gameData } = useGameStore();
+  const insets = useSafeAreaInsets();
   
   const level = LEVEL_CONFIGS.find(l => l.id === parseInt(levelId, 10));
   const cardColorIndex = (parseInt(levelId, 10) - 1) % CARD_COLORS.length;
@@ -65,6 +67,14 @@ export default function GameScreen() {
       clearAllTimers();
     };
   }, []);
+
+  // Monitor matched cards to ensure game completion check
+  useEffect(() => {
+    if (gameState === 'playing' && matchedCards.length === level.cards) {
+      // 确保所有卡牌都已配对，游戏应该完成
+      completeGame(matchHistory, attempts);
+    }
+  }, [matchedCards.length, gameState, level.cards, matchHistory, attempts]);
 
   // Handle back button
   useFocusEffect(
@@ -171,9 +181,14 @@ export default function GameScreen() {
         setShowCombo(true);
       }
       
+      // Update matched cards first, then clear flipped cards
       const newMatchedCards = [...matchedCards, first, second];
       setMatchedCards(newMatchedCards);
-      setFlippedCards([]);
+      
+      // Use setTimeout to ensure state updates are processed in order
+      setTimeout(() => {
+        setFlippedCards([]);
+      }, 0);
       
       // Check if game is complete
       if (newMatchedCards.length === level.cards) {
@@ -191,6 +206,9 @@ export default function GameScreen() {
   };
 
   const completeGame = (finalMatchHistory = matchHistory, finalAttempts = attempts) => {
+    // 确保游戏状态正确
+    if (gameState === 'completed') return;
+    
     clearInterval(timerRef.current);
     setGameState('completed');
     
@@ -311,10 +329,13 @@ export default function GameScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
       
-      // Check if game is complete
-      if (newMatchedCards.length === level.cards) {
-        completeGame(updatedMatchHistory, newAttempts);
-      }
+      // 确保状态更新顺序正确
+      setTimeout(() => {
+        // Check if game is complete
+        if (newMatchedCards.length === level.cards) {
+          completeGame(updatedMatchHistory, newAttempts);
+        }
+      }, 0);
     } else {
       Alert.alert('Bomb Powerup', 'No matching pairs found to remove!');
     }
@@ -329,8 +350,9 @@ export default function GameScreen() {
       allCards.push(i);
     }
     
-    setFlippedCards(allCards);
+    // 先设置glimpse状态，再显示所有卡牌
     setIsGlimpseActive(true);
+    setFlippedCards(allCards);
     
     // 5秒后翻转回去
     setTimeout(() => {
@@ -455,9 +477,9 @@ export default function GameScreen() {
         levelTier={level.tier}
         isPreview={isPreviewMode}
         levelId={level.id}
-        headerBottomY={118} // 头部下边缘位置，为2px上边距预留空间
+        headerBottomY={Math.max(insets.top + 10, 50) + 62} // 动态计算头部下边缘位置
         onCardPositionsChange={setCardPositions}
-        powerupBarHeight={82} // 道具栏高度，为底部留出空间
+        powerupBarHeight={Math.max(insets.bottom + 82, 82)} // 动态计算道具栏高度
         isGlimpseActive={isGlimpseActive}
       />
 
