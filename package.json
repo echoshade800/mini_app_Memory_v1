@@ -44,6 +44,7 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.888.0",
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
     "@react-native-community/cli": "^20.0.2",
