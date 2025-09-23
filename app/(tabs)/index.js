@@ -79,7 +79,7 @@ export default function HomeScreen() {
               <Ionicons name="help-circle-outline" size={24} color="#6B7280" />
             </TouchableOpacity>
             <View style={styles.coinDisplay}>
-              <Text style={styles.coinText}>🪙 {gameData.coins}</Text>
+              <Text style={styles.coinText}>💰 {gameData.coins}</Text>
             </View>
           </View>
         </View>

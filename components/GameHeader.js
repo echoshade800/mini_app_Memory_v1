@@ -31,7 +31,7 @@ export default function GameHeader({
         
         <View style={styles.rightSection}>
           <View style={styles.coinDisplay}>
-            <Text style={styles.coinText}>🪙 {coins}</Text>
+            <Text style={styles.coinText}>💰 {coins}</Text>
           </View>
           {isPreview && (
             <View style={styles.previewTimerContainer}>
