@@ -306,6 +306,11 @@ export default function GameScreen() {
         setShowCombo(true);
       }
       
+      // Bomb配对成功 - 添加振动反馈（与手动翻牌配对成功时相同）
+      if (Haptics.impactAsync) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      }
+      
       // Check if game is complete
       if (newMatchedCards.length === level.cards) {
         completeGame(updatedMatchHistory, newAttempts);
