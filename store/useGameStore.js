@@ -18,6 +18,7 @@ const useGameStore = create((set, get) => ({
     showOnboarding: true, // 控制是否显示新手引导
     recentRuns: [],
     coins: 0, // 金币数量
+    soundEffectsEnabled: true, // 音效开关，默认开启
   },
   
   // Loading state
@@ -40,6 +41,7 @@ const useGameStore = create((set, get) => ({
         showOnboarding: gameData.showOnboarding !== undefined ? gameData.showOnboarding : true,
         recentRuns: gameData.recentRuns || [],
         coins: gameData.coins || 0,
+        soundEffectsEnabled: gameData.soundEffectsEnabled !== undefined ? gameData.soundEffectsEnabled : true,
       } : {
         maxLevel: 1,
         scoresByLevel: {},
@@ -48,6 +50,7 @@ const useGameStore = create((set, get) => ({
         showOnboarding: true,
         recentRuns: [],
         coins: 0,
+        soundEffectsEnabled: true,
       };
       
       set({
@@ -164,6 +167,13 @@ const useGameStore = create((set, get) => ({
       return true;
     }
     return false;
+  },
+
+  // 切换音效开关
+  toggleSoundEffects: async () => {
+    const currentData = get().gameData;
+    const newSoundEffectsEnabled = !currentData.soundEffectsEnabled;
+    await get().updateProgress({ soundEffectsEnabled: newSoundEffectsEnabled });
   },
 
 }));

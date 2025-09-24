@@ -12,7 +12,7 @@ import useGameStore from '../../store/useGameStore';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { gameData, updateProgress } = useGameStore();
+  const { gameData, updateProgress, toggleSoundEffects } = useGameStore();
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
 
   const handleTutorial = () => {
@@ -87,6 +87,19 @@ export default function ProfileScreen() {
             <Switch
               value={hapticsEnabled}
               onValueChange={setHapticsEnabled}
+              trackColor={{ false: '#E5E7EB', true: '#3B82F6' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+          
+          <View style={styles.settingItem}>
+            <View style={styles.settingInfo}>
+              <Ionicons name="volume-high" size={20} color="#6B7280" />
+              <Text style={styles.settingLabel}>Sound Effects</Text>
+            </View>
+            <Switch
+              value={gameData.soundEffectsEnabled}
+              onValueChange={toggleSoundEffects}
               trackColor={{ false: '#E5E7EB', true: '#3B82F6' }}
               thumbColor="#FFFFFF"
             />
