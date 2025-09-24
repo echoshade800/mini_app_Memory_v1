@@ -9,7 +9,6 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
 import { LEVEL_CONFIGS, EMOJI_POOL, CARD_COLORS } from '../../constants/levels';
 import { previewTimeSec, calculateTotalScore, calculateComboSegments } from '../../utils/scoring';
 import useGameStore from '../../store/useGameStore';
@@ -51,8 +50,6 @@ export default function GameScreen() {
   // 抖动动画相关
   const shakeAnimation = useRef(new Animated.Value(0)).current;
   
-  // 音频相关
-  const [sound, setSound] = useState(null);
   
   // Refs
   const timerRef = useRef(null);
@@ -70,45 +67,11 @@ export default function GameScreen() {
   // Initialize game
   useEffect(() => {
     initializeGame();
-    loadSuccessSound();
     return () => {
       clearAllTimers();
-      unloadSound();
     };
   }, []);
 
-  // 加载成功音效
-  const loadSuccessSound = async () => {
-    try {
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: 'https://dzdbhsix5ppsc.cloudfront.net/monster/tinified/add408457.mp3' }
-      );
-      setSound(newSound);
-    } catch (error) {
-      console.log('Error loading sound:', error);
-    }
-  };
-
-  // 卸载音频
-  const unloadSound = async () => {
-    if (sound) {
-      await sound.unloadAsync();
-      setSound(null);
-    }
-  };
-
-  // 播放成功音效
-  const playSuccessSound = async () => {
-    if (sound && gameData.soundEffectsEnabled) {
-      try {
-        await sound.replayAsync();
-      } catch (error) {
-        console.log('Error playing sound:', error);
-      }
-    } else if (!gameData.soundEffectsEnabled) {
-      console.log('Sound effects disabled, skipping success sound');
-    }
-  };
 
   // Monitor matched cards to ensure game completion check
   useEffect(() => {
@@ -216,6 +179,7 @@ export default function GameScreen() {
       
       // Update combo count
       const newCombo = currentCombo + 1;
+      console.log(`🎮 Game: Setting combo from ${currentCombo} to ${newCombo}`);
       setCurrentCombo(newCombo);
       
       // 音频播放已由ComboDisplay组件统一处理，无需在此重复播放
@@ -396,6 +360,7 @@ export default function GameScreen() {
       
       // 更新combo状态
       const newCombo = currentCombo + 1;
+      console.log(`💣 Bomb: Setting combo from ${currentCombo} to ${newCombo}`);
       setCurrentCombo(newCombo);
       
       // Show combo display for all successful matches

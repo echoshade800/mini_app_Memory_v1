@@ -15,7 +15,8 @@ import LevelsCompletedCard from '../../components/LevelsCompletedCard';
 export default function HomeScreen() {
   const router = useRouter();
   const [isRouterReady, setIsRouterReady] = useState(false);
-  const { gameData, isLoading, error, initialize, toggleOnboarding } = useGameStore();
+  const [hasShownOnboarding, setHasShownOnboarding] = useState(false);
+  const { gameData, isLoading, error, initialize } = useGameStore();
 
   useEffect(() => {
     // Wait for router to be ready
@@ -30,11 +31,21 @@ export default function HomeScreen() {
   }, [router]);
 
   useEffect(() => {
-    // Show onboarding if first time and onboarding is enabled
-    if (isRouterReady && !isLoading && !gameData.seenTutorial && gameData.showOnboarding) {
-      router.push('/onboarding?firstTime=true');
+    // Show onboarding if first time user
+    // Only show onboarding when user is on the home tab, not when navigating to other tabs
+    if (isRouterReady && !isLoading && !gameData.seenTutorial && !hasShownOnboarding) {
+      // Add a small delay to ensure the user is actually on the home screen
+      // and prevent interference with tab navigation
+      const timer = setTimeout(() => {
+        // Double check that we're still in the right state before navigating
+        if (!gameData.seenTutorial && !hasShownOnboarding) {
+          setHasShownOnboarding(true);
+          router.push('/onboarding?firstTime=true');
+        }
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [gameData.seenTutorial, gameData.showOnboarding, isRouterReady, isLoading, router]);
+  }, [gameData.seenTutorial, isRouterReady, isLoading, hasShownOnboarding, router]);
 
   if (isLoading) {
     return (

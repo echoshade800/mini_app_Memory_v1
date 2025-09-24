@@ -6,7 +6,7 @@
 
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { LEVEL_CONFIGS, TIERS, TIER_COLORS } from '../../constants/levels';
 import useGameStore from '../../store/useGameStore';
@@ -25,6 +25,14 @@ export default function LevelsScreen() {
   const { gameData } = useGameStore();
   const [searchText, setSearchText] = useState('');
   const [selectedTier, setSelectedTier] = useState('all');
+
+  // Check if user needs to complete onboarding first
+  useEffect(() => {
+    if (!gameData.seenTutorial) {
+      // Redirect to onboarding if user hasn't completed it yet
+      router.replace('/onboarding?firstTime=true');
+    }
+  }, [gameData.seenTutorial, router]);
 
   const groupedLevels = useMemo(() => {
     let filtered = LEVEL_CONFIGS;

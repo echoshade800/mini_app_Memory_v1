@@ -46,21 +46,21 @@ const ONBOARDING_SLIDES = [
 export default function OnboardingScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { setTutorialSeen, toggleOnboarding, gameData } = useGameStore();
+  const { setTutorialSeen, gameData } = useGameStore();
   const [currentPage, setCurrentPage] = useState(0);
-  const [showOnboardingInFuture, setShowOnboardingInFuture] = useState(true);
   
   // 检查是否是首次登录（通过路由参数或seenTutorial状态判断）
   const isFirstTime = params.firstTime === 'true' || !gameData.seenTutorial;
 
   const handleGetStarted = async () => {
     await setTutorialSeen();
-    // 只在首次登录时处理onboarding设置
+    // 首次用户直接进入第一关开始游戏
     if (isFirstTime) {
-      await toggleOnboarding(showOnboardingInFuture);
+      router.replace('/game/1');
+    } else {
+      // 非首次用户跳转到levels页面
+      router.replace('/(tabs)/levels');
     }
-    // 跳转到关卡选择界面
-    router.push('/(tabs)/levels');
   };
 
   const handleSkip = () => {
@@ -110,19 +110,6 @@ export default function OnboardingScreen() {
             <Text style={styles.subtitle}>{ONBOARDING_SLIDES[currentPage].subtitle}</Text>
             <Text style={styles.description}>{ONBOARDING_SLIDES[currentPage].content}</Text>
             
-            {currentPage === ONBOARDING_SLIDES.length - 1 && isFirstTime && (
-              <View style={styles.settingsContainer}>
-                <View style={styles.settingRow}>
-                  <Text style={styles.settingLabel}>Don't show this again</Text>
-                  <Switch
-                    value={!showOnboardingInFuture}
-                    onValueChange={(value) => setShowOnboardingInFuture(!value)}
-                    trackColor={{ false: '#E5E7EB', true: '#3B82F6' }}
-                    thumbColor={!showOnboardingInFuture ? '#FFFFFF' : '#FFFFFF'}
-                  />
-                </View>
-              </View>
-            )}
           </View>
         </View>
       </View>
@@ -230,26 +217,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
-  },
-  settingsContainer: {
-    marginTop: 30,
-    paddingHorizontal: 20,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  settingLabel: {
-    fontSize: 16,
-    color: '#374151',
-    fontWeight: '500',
   },
   navigation: {
     paddingHorizontal: 20,

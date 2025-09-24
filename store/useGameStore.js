@@ -15,7 +15,6 @@ const useGameStore = create((set, get) => ({
     scoresByLevel: {},
     timesByLevel: {},
     seenTutorial: false,
-    showOnboarding: true, // 控制是否显示新手引导
     recentRuns: [],
     coins: 0, // 金币数量
     soundEffectsEnabled: true, // 音效开关，默认开启
@@ -38,7 +37,6 @@ const useGameStore = create((set, get) => ({
         scoresByLevel: gameData.scoresByLevel || {},
         timesByLevel: gameData.timesByLevel || {},
         seenTutorial: gameData.seenTutorial || false,
-        showOnboarding: gameData.showOnboarding !== undefined ? gameData.showOnboarding : true,
         recentRuns: gameData.recentRuns || [],
         coins: gameData.coins || 0,
         soundEffectsEnabled: gameData.soundEffectsEnabled !== undefined ? gameData.soundEffectsEnabled : true,
@@ -47,7 +45,6 @@ const useGameStore = create((set, get) => ({
         scoresByLevel: {},
         timesByLevel: {},
         seenTutorial: false,
-        showOnboarding: true,
         recentRuns: [],
         coins: 0,
         soundEffectsEnabled: true,
@@ -83,10 +80,6 @@ const useGameStore = create((set, get) => ({
     await get().updateProgress({ seenTutorial: true });
   },
 
-  // Toggle onboarding visibility
-  toggleOnboarding: async (show) => {
-    await get().updateProgress({ showOnboarding: show });
-  },
 
   // Complete a level
   completeLevel: async (levelId, score, durationSec) => {

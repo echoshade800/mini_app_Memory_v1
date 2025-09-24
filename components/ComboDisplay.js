@@ -9,6 +9,9 @@ import { Audio } from 'expo-av';
 import useGameStore from '../store/useGameStore';
 
 export default function ComboDisplay({ combo, visible, onAnimationComplete }) {
+  const componentId = useRef(Math.random().toString(36).substr(2, 9)).current;
+  console.log(`🎵 ComboDisplay: Component rendered with ID ${componentId}, combo=${combo}, visible=${visible}`);
+  
   const scaleAnimation = useRef(new Animated.Value(0)).current;
   const opacityAnimation = useRef(new Animated.Value(0)).current;
   const { gameData } = useGameStore();
@@ -22,6 +25,10 @@ export default function ComboDisplay({ combo, visible, onAnimationComplete }) {
   const combo7SoundRef = useRef(null);
   const combo8SoundRef = useRef(null);
   const combo9PlusSoundRef = useRef(null);
+  
+  // 防止重复播放音效的refs
+  const lastPlayedCombo = useRef(-1);
+  const audioPlayTimeout = useRef(null);
 
   // 加载连击音效
   const loadComboSounds = async () => {
@@ -85,7 +92,9 @@ export default function ComboDisplay({ combo, visible, onAnimationComplete }) {
 
   // 播放连击音效
   const playComboSound = async (comboCount) => {
-    console.log(`Playing combo sound for combo ${comboCount}`);
+    const audioId = Math.random().toString(36).substr(2, 9);
+    console.log(`🎵 ComboDisplay: playComboSound called for combo ${comboCount} [ID: ${audioId}]`);
+    console.log(`🎵 ComboDisplay: gameData.soundEffectsEnabled = ${gameData.soundEffectsEnabled}`);
     
     let soundRef = null;
     let soundName = '';
@@ -127,18 +136,20 @@ export default function ComboDisplay({ combo, visible, onAnimationComplete }) {
         break;
     }
     
+    console.log(`🎵 ComboDisplay: soundRef exists = ${!!soundRef}, soundName = ${soundName} [ID: ${audioId}]`);
+    
     if (soundRef && gameData.soundEffectsEnabled) {
       try {
-        console.log(`Playing ${soundName} for combo ${comboCount}`);
+        console.log(`🎵 ComboDisplay: Playing ${soundName} for combo ${comboCount} [ID: ${audioId}]`);
         await soundRef.replayAsync();
-        console.log(`Combo sound played successfully`);
+        console.log(`🎵 ComboDisplay: Combo sound played successfully [ID: ${audioId}]`);
       } catch (error) {
-        console.log('Error playing combo sound:', error);
+        console.log(`🎵 ComboDisplay: Error playing combo sound [ID: ${audioId}]:`, error);
       }
     } else if (!gameData.soundEffectsEnabled) {
-      console.log(`Sound effects disabled, skipping ${soundName} for combo ${comboCount}`);
+      console.log(`🎵 ComboDisplay: Sound effects disabled, skipping ${soundName} for combo ${comboCount} [ID: ${audioId}]`);
     } else {
-      console.log(`No sound loaded for combo ${comboCount}`);
+      console.log(`🎵 ComboDisplay: No sound loaded for combo ${comboCount} [ID: ${audioId}]`);
     }
   };
 
@@ -158,15 +169,50 @@ export default function ComboDisplay({ combo, visible, onAnimationComplete }) {
   useEffect(() => {
     loadComboSounds();
     return () => {
+      // 清理音频和timeout
+      if (audioPlayTimeout.current) {
+        clearTimeout(audioPlayTimeout.current);
+      }
       unloadComboSounds();
     };
   }, []);
 
+  // 播放音效的useEffect - 只在combo值改变时播放
+  useEffect(() => {
+    console.log(`🎵 ComboDisplay useEffect triggered: combo=${combo}, visible=${visible}, lastPlayed=${lastPlayedCombo.current}`);
+    
+    // 当combo重置为0时，重置lastPlayedCombo
+    if (combo === 0) {
+      console.log(`🎵 ComboDisplay: Combo reset to 0, resetting lastPlayedCombo`);
+      lastPlayedCombo.current = -1;
+      return;
+    }
+    
+    // 防止重复播放同一个combo的音效
+    if (combo >= 1 && combo !== lastPlayedCombo.current) {
+      console.log(`🎵 ComboDisplay: About to play combo sound for combo ${combo} (new combo)`);
+      
+      // 清除之前的timeout（如果有的话）
+      if (audioPlayTimeout.current) {
+        clearTimeout(audioPlayTimeout.current);
+      }
+      
+      // 设置一个短暂的延迟来防止快速连续调用
+      audioPlayTimeout.current = setTimeout(() => {
+        // 再次检查combo值是否仍然有效
+        if (combo >= 1 && combo !== lastPlayedCombo.current) {
+          lastPlayedCombo.current = combo;
+          playComboSound(combo);
+        }
+      }, 50); // 50ms延迟
+    } else if (combo === lastPlayedCombo.current) {
+      console.log(`🎵 ComboDisplay: Skipping audio for combo ${combo} (already played)`);
+    }
+  }, [combo]);
+
+  // 动画的useEffect - 只在visible改变时播放动画
   useEffect(() => {
     if (visible && combo >= 1) {
-      // 播放连击音效（包括第一次配对成功）
-      playComboSound(combo);
-      
       // Start animation
       Animated.parallel([
         Animated.sequence([
@@ -204,7 +250,7 @@ export default function ComboDisplay({ combo, visible, onAnimationComplete }) {
       scaleAnimation.setValue(0);
       opacityAnimation.setValue(0);
     }
-  }, [visible, combo]);
+  }, [visible]);
 
   if (!visible || combo < 1) {
     return null;
