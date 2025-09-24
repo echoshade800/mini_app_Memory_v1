@@ -6,9 +6,10 @@
 
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import useGameStore from '../../store/useGameStore';
+import StorageUtils from '../../storage/StorageUtils';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -44,6 +45,26 @@ export default function ProfileScreen() {
   };
 
   const completionRate = Math.round(((gameData.maxLevel - 1) / 25) * 100);
+
+  // Save maxLevel and completionRate to localStorage when they change
+  useEffect(() => {
+    const savePlayerStats = async () => {
+      try {
+        await StorageUtils.setData({
+          maxLevel: gameData.maxLevel,
+          completionRate: completionRate
+        });
+        console.log('Player stats saved to localStorage:', {
+          maxLevel: gameData.maxLevel,
+          completionRate: completionRate
+        });
+      } catch (error) {
+        console.error('Failed to save player stats:', error);
+      }
+    };
+
+    savePlayerStats();
+  }, [gameData.maxLevel, completionRate]);
 
   return (
     <ScrollView style={styles.container}>

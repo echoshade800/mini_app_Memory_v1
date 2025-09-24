@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  */
 class StorageUtils {
   // miniApp name variable
-  static miniAppName = 'Memory';
+  static miniAppName = 'MemoryMiniApp';
 
   /**
    * Get user data
