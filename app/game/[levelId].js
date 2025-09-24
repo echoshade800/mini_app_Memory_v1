@@ -329,6 +329,10 @@ export default function GameScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
       
+      // 关键修复：清空已翻开的卡牌状态，让游戏回到正常状态
+      // 这样用户再翻开新卡牌时不会触发错误的配对检查
+      setFlippedCards([]);
+      
       // 确保状态更新顺序正确
       setTimeout(() => {
         // Check if game is complete
