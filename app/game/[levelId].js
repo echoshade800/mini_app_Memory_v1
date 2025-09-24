@@ -4,7 +4,7 @@
  * Extension: Add power-ups, hints, different game modes, multiplayer
  */
 
-import { View, Text, StyleSheet, Alert, BackHandler, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Alert, BackHandler, TouchableOpacity, Platform, Animated } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,6 +46,9 @@ export default function GameScreen() {
   
   // 道具相关状态
   const [cardPositions, setCardPositions] = useState([]);
+  
+  // 抖动动画相关
+  const shakeAnimation = useRef(new Animated.Value(0)).current;
   
   // Refs
   const timerRef = useRef(null);
@@ -199,6 +202,10 @@ export default function GameScreen() {
       // No match - reset combo and flip cards back after delay
       setCurrentCombo(0);
       setShowCombo(false);
+      
+      // 触发抖动动画
+      triggerShakeAnimation();
+      
       flipTimeoutRef.current = setTimeout(() => {
         setFlippedCards([]);
       }, 1000);
@@ -256,6 +263,37 @@ export default function GameScreen() {
 
   const handleComboAnimationComplete = () => {
     setShowCombo(false);
+  };
+
+  // 抖动动画函数
+  const triggerShakeAnimation = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnimation, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: -10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: -10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: 0,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   // 道具使用逻辑
@@ -447,7 +485,7 @@ export default function GameScreen() {
   const isGameDisabled = gameState !== 'playing' || flippedCards.length >= 2;
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { transform: [{ translateX: shakeAnimation }] }]}>
       <GameHeader
         level={level.id}
         onMenuPress={handleMenuPress}
@@ -525,7 +563,7 @@ export default function GameScreen() {
           <Text style={styles.completedText}>🎉 Level Complete! 🎉</Text>
         </View>
       )}
-    </View>
+    </Animated.View>
   );
 }
 

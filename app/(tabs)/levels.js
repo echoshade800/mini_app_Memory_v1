@@ -122,11 +122,14 @@ export default function LevelsScreen() {
             {level.cards} cards
           </Text>
           
-          {isUnlocked && bestScore > 0 ? (
-            <View style={styles.statsContainer}>
-              <Text style={styles.scoreText}>{bestScore}/{maxPossible}</Text>
-            </View>
-          ) : null}
+          <View style={styles.statsContainer}>
+            <Text style={[styles.scoreText, !isUnlocked && styles.lockedText]}>
+              {isUnlocked 
+                ? (bestScore > 0 ? `${bestScore}/${maxPossible}` : `—/${maxPossible}`)
+                : `—/${maxPossible}`
+              }
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
