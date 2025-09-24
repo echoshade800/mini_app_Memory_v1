@@ -253,7 +253,7 @@ export default function GameScreen() {
     }
   };
 
-  const completeGame = (finalMatchHistory = matchHistory, finalAttempts = attempts) => {
+  const completeGame = (finalMatchHistory = matchHistory, finalAttempts = attempts, successfulPairs = null) => {
     // 确保游戏状态正确
     if (gameState === 'completed') return;
     
@@ -263,7 +263,7 @@ export default function GameScreen() {
     // Calculate final score
     const totalPairs = level.cards / 2; // 当局总对数
     const comboSegments = calculateComboSegments(finalMatchHistory);
-    const finalScore = calculateTotalScore(level.id, totalPairs, finalAttempts, timer, comboSegments);
+    const finalScore = calculateTotalScore(level.id, totalPairs, finalAttempts, timer, comboSegments, successfulPairs);
     
     // Store score data for animation
     setFinalScoreData(finalScore);
@@ -448,8 +448,16 @@ export default function GameScreen() {
 
   // Skip powerup: directly complete the current level
   const handleSkipPowerup = () => {
-    // Directly complete the game
-    completeGame([], 0);
+    // 计算使用skip前已经成功配对的对数
+    const successfulPairs = matchedCards.length / 2;
+    
+    // 使用当前的游戏状态完成游戏，保留使用skip前的分数记录
+    // 将所有未配对的卡牌标记为已配对，但不影响分数计算
+    const allCardIndices = Array.from({ length: level.cards }, (_, i) => i);
+    setMatchedCards(allCardIndices);
+    
+    // 使用当前的matchHistory和attempts完成游戏，并传递成功配对数
+    completeGame(matchHistory, attempts, successfulPairs);
   };
 
 

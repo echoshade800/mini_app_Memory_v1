@@ -20,11 +20,21 @@ export function previewTimeSec(N) {
  * @param {number} levelId - Level ID (1-based)
  * @param {number} totalPairs - Total number of pairs in the level
  * @param {number} attempts - Number of attempts (flipping 2 cards = 1 attempt)
+ * @param {number} successfulPairs - Number of successfully matched pairs (for skip powerup)
  * @returns {number} Accuracy score
  */
-export function calculateAccuracyScore(levelId, totalPairs, attempts) {
+export function calculateAccuracyScore(levelId, totalPairs, attempts, successfulPairs = null) {
   const CAP = totalPairs * 10; // CAP = 当局卡牌总对数 × 10
-  const acc = attempts > 0 ? totalPairs / attempts : 0;
+  
+  let acc;
+  if (successfulPairs !== null) {
+    // 使用skip道具时，使用实际成功配对的对数
+    acc = successfulPairs / totalPairs;
+  } else {
+    // 正常游戏时，使用尝试次数计算
+    acc = attempts > 0 ? totalPairs / attempts : 0;
+  }
+  
   return Math.round(CAP * acc);
 }
 
@@ -74,12 +84,13 @@ export function calculateTimeScore(levelId, totalPairs, durationSec) {
  * @param {number} attempts - Number of attempts
  * @param {number} durationSec - Time taken in seconds
  * @param {Array} comboSegments - Array of combo segment lengths
+ * @param {number} successfulPairs - Number of successfully matched pairs (for skip powerup)
  * @returns {Object} Score breakdown
  */
-export function calculateTotalScore(levelId, totalPairs, attempts, durationSec, comboSegments) {
+export function calculateTotalScore(levelId, totalPairs, attempts, durationSec, comboSegments, successfulPairs = null) {
   const CAP = totalPairs * 10; // CAP = 当局卡牌总对数 × 10
   
-  const accuracy = calculateAccuracyScore(levelId, totalPairs, attempts);
+  const accuracy = calculateAccuracyScore(levelId, totalPairs, attempts, successfulPairs);
   const combo = calculateComboScore(levelId, totalPairs, comboSegments);
   const time = calculateTimeScore(levelId, totalPairs, durationSec);
   
