@@ -12,6 +12,8 @@ import * as Haptics from 'expo-haptics';
 import { LEVEL_CONFIGS, EMOJI_POOL, CARD_COLORS } from '../../constants/levels';
 import { previewTimeSec, calculateTotalScore, calculateComboSegments } from '../../utils/scoring';
 import useGameStore from '../../store/useGameStore';
+import soundManager from '../../utils/SoundManager';
+import HapticUtils from '../../utils/HapticUtils';
 import GameHeader from '../../components/GameHeader';
 import GameGrid from '../../components/GameGrid';
 import ScoreProgressBars from '../../components/ScoreProgressBars';
@@ -66,6 +68,8 @@ export default function GameScreen() {
 
   // Initialize game
   useEffect(() => {
+    // Initialize sound system for this level
+    soundManager.initializeLevel(levelId);
     initializeGame();
     return () => {
       clearAllTimers();
@@ -173,21 +177,20 @@ export default function GameScreen() {
 
     if (isMatch) {
       // Match found - add haptic feedback
-      if (Haptics.impactAsync) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      }
+      HapticUtils.triggerHeavy();
       
       // Update combo count
       const newCombo = currentCombo + 1;
       console.log(`🎮 Game: Setting combo from ${currentCombo} to ${newCombo}`);
       setCurrentCombo(newCombo);
       
-      // 音频播放已由ComboDisplay组件统一处理，无需在此重复播放
-      
-      // Show combo display for all successful matches
-      if (newCombo >= 1) {
+      // 显示combo提示（当连续配对2次及以上时）
+      if (newCombo >= 2) {
         setShowCombo(true);
       }
+      
+      // Play appropriate sound based on combo
+      soundManager.handleCardMatch(true, newCombo);
       
       // Update matched cards first, then clear flipped cards
       const newMatchedCards = [...matchedCards, first, second];
@@ -224,6 +227,9 @@ export default function GameScreen() {
     clearInterval(timerRef.current);
     setGameState('completed');
     
+    // Set completion page flag to disable sounds
+    soundManager.setCompletionPage(true);
+    
     // Calculate final score
     const totalPairs = level.cards / 2; // 当局总对数
     const comboSegments = calculateComboSegments(finalMatchHistory);
@@ -241,34 +247,56 @@ export default function GameScreen() {
     }, 1000);
   };
 
-  const handleQuit = () => {
+  const handleQuit = async () => {
+    console.log(`Game: Quitting level ${levelId}`);
     setShowScoreAnimation(false);
-    router.push('/(tabs)');
+    // Stop all sounds for this level
+    await soundManager.stopLevelSounds();
+    // Wait for sounds to stop before navigating
+    setTimeout(() => {
+      router.push('/(tabs)');
+    }, 100);
   };
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
+    console.log(`Game: Retrying level ${levelId}`);
     setShowScoreAnimation(false);
-    clearAllTimers();
-    initializeGame();
+    // Stop all sounds for this level
+    await soundManager.stopLevelSounds();
+    // Reinitialize sound system for retry
+    soundManager.initializeLevel(levelId);
+    // Wait for sounds to stop before restarting
+    setTimeout(() => {
+      clearAllTimers();
+      initializeGame();
+    }, 100);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    console.log(`Game: Next level from ${levelId}`);
     setShowScoreAnimation(false);
+    // Stop all sounds for this level
+    await soundManager.stopLevelSounds();
+    
     const isLastLevel = level.id === 25;
     const nextLevelId = level.id + 1;
     
-    if (isLastLevel) {
-      // 最后一关完成，返回主页
-      router.push('/(tabs)');
-    } else {
-      // 进入下一关
-      router.replace(`/game/${nextLevelId}`);
-    }
+    // Wait for sounds to stop before navigating
+    setTimeout(() => {
+      if (isLastLevel) {
+        // 最后一关完成，返回主页
+        router.push('/(tabs)');
+      } else {
+        // 进入下一关
+        router.replace(`/game/${nextLevelId}`);
+      }
+    }, 100);
   };
 
   const handleComboAnimationComplete = () => {
     setShowCombo(false);
   };
+
 
   // 抖动动画函数
   const triggerShakeAnimation = () => {
@@ -363,17 +391,16 @@ export default function GameScreen() {
       console.log(`💣 Bomb: Setting combo from ${currentCombo} to ${newCombo}`);
       setCurrentCombo(newCombo);
       
-      // Show combo display for all successful matches
-      if (newCombo >= 1) {
+      // 显示combo提示（当连续配对2次及以上时）
+      if (newCombo >= 2) {
         setShowCombo(true);
       }
       
       // Bomb配对成功 - 添加振动反馈（与手动翻牌配对成功时相同）
-      if (Haptics.impactAsync) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      }
+      HapticUtils.triggerHeavy();
       
-      // 音频播放已由ComboDisplay组件统一处理，无需在此重复播放
+      // Play appropriate sound based on combo (same as manual card matching)
+      soundManager.handleCardMatch(true, newCombo);
       
       // 关键修复：清空已翻开的卡牌状态，让游戏回到正常状态
       // 这样用户再翻开新卡牌时不会触发错误的配对检查
@@ -456,7 +483,7 @@ export default function GameScreen() {
   const quitGame = () => {
     setIsPaused(false);
     clearAllTimers();
-    router.back();
+    router.push('/(tabs)');
   };
 
   const handleMenuPress = () => {
@@ -490,7 +517,7 @@ export default function GameScreen() {
           text: 'Leave', 
           onPress: () => {
             clearAllTimers();
-            router.back();
+            router.push('/(tabs)');
           }
         }
       ]
@@ -546,7 +573,6 @@ export default function GameScreen() {
         visible={showCombo}
         onAnimationComplete={handleComboAnimationComplete}
       />
-
 
       <PowerupBar
         onUsePowerup={handleUsePowerup}

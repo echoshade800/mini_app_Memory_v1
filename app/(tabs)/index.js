@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useGameStore from '../../store/useGameStore';
 import { LEVEL_CONFIGS } from '../../constants/levels';
 import LevelsCompletedCard from '../../components/LevelsCompletedCard';
+import soundManager from '../../utils/SoundManager';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -29,6 +30,21 @@ export default function HomeScreen() {
     };
     checkRouter();
   }, [router]);
+
+  // Clean up all sounds when entering home screen
+  useEffect(() => {
+    const cleanupSounds = async () => {
+      try {
+        console.log('Home: Cleaning up all sounds when entering home screen');
+        await soundManager.cleanup();
+        console.log('Home: All sounds cleaned up');
+      } catch (error) {
+        console.log('Home: Error cleaning up sounds:', error);
+      }
+    };
+    
+    cleanupSounds();
+  }, []);
 
   useEffect(() => {
     // Show onboarding if first time user

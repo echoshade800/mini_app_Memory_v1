@@ -18,6 +18,7 @@ const useGameStore = create((set, get) => ({
     recentRuns: [],
     coins: 0, // 金币数量
     soundEffectsEnabled: true, // 音效开关，默认开启
+    hapticFeedbackEnabled: true, // 触觉反馈开关，默认开启
   },
   
   // Loading state
@@ -40,6 +41,7 @@ const useGameStore = create((set, get) => ({
         recentRuns: gameData.recentRuns || [],
         coins: gameData.coins || 0,
         soundEffectsEnabled: gameData.soundEffectsEnabled !== undefined ? gameData.soundEffectsEnabled : true,
+        hapticFeedbackEnabled: gameData.hapticFeedbackEnabled !== undefined ? gameData.hapticFeedbackEnabled : true,
       } : {
         maxLevel: 1,
         scoresByLevel: {},
@@ -48,6 +50,7 @@ const useGameStore = create((set, get) => ({
         recentRuns: [],
         coins: 0,
         soundEffectsEnabled: true,
+        hapticFeedbackEnabled: true,
       };
       
       set({
@@ -167,6 +170,13 @@ const useGameStore = create((set, get) => ({
     const currentData = get().gameData;
     const newSoundEffectsEnabled = !currentData.soundEffectsEnabled;
     await get().updateProgress({ soundEffectsEnabled: newSoundEffectsEnabled });
+  },
+
+  // 切换触觉反馈开关
+  toggleHapticFeedback: async () => {
+    const currentData = get().gameData;
+    const newHapticFeedbackEnabled = !currentData.hapticFeedbackEnabled;
+    await get().updateProgress({ hapticFeedbackEnabled: newHapticFeedbackEnabled });
   },
 
 }));

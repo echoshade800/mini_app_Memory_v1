@@ -13,8 +13,7 @@ import StorageUtils from '../../storage/StorageUtils';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { gameData, updateProgress, toggleSoundEffects } = useGameStore();
-  const [hapticsEnabled, setHapticsEnabled] = useState(true);
+  const { gameData, updateProgress, toggleSoundEffects, toggleHapticFeedback } = useGameStore();
 
   const handleTutorial = () => {
     router.push('/onboarding');
@@ -106,8 +105,8 @@ export default function ProfileScreen() {
               <Text style={styles.settingLabel}>Haptic Feedback</Text>
             </View>
             <Switch
-              value={hapticsEnabled}
-              onValueChange={setHapticsEnabled}
+              value={gameData.hapticFeedbackEnabled}
+              onValueChange={toggleHapticFeedback}
               trackColor={{ false: '#E5E7EB', true: '#3B82F6' }}
               thumbColor="#FFFFFF"
             />

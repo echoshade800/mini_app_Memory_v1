@@ -6,8 +6,8 @@
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
-import useGameStore from '../store/useGameStore';
+import * as Haptics from 'expo-haptics';
+import HapticUtils from '../utils/HapticUtils';
 
 export default function ScoreProgressBars({ 
   scoreData, 
@@ -21,12 +21,6 @@ export default function ScoreProgressBars({
   const comboAnim = useRef(new Animated.Value(0)).current;
   const timeAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const { gameData } = useGameStore();
-  
-  // 音频状态 - 使用ref来避免状态异步问题
-  const accuracySoundRef = useRef(null);
-  const comboSoundRef = useRef(null);
-  const timeSoundRef = useRef(null);
 
   // Use the actual max scores from scoreData
   const maxAccuracyScore = scoreData.maxAccuracyScore || 10 * levelId;
@@ -34,105 +28,10 @@ export default function ScoreProgressBars({
   const maxTimeScore = scoreData.maxTimeScore || 10 * levelId;
   const isLastLevel = levelId === 25;
 
-  // 加载音频文件
-  const loadSounds = async () => {
-    try {
-      console.log('Loading sounds...');
-      
-      // 分别加载每个音频文件，避免并发问题
-      const accuracySoundResult = await Audio.Sound.createAsync({ 
-        uri: 'https://dzdbhsix5ppsc.cloudfront.net/monster/tinified/d682018.mp3' 
-      });
-      accuracySoundRef.current = accuracySoundResult.sound;
-      console.log('Accuracy sound loaded');
-      
-      const comboSoundResult = await Audio.Sound.createAsync({ 
-        uri: 'https://dzdbhsix5ppsc.cloudfront.net/monster/tinified/g682014.mp3' 
-      });
-      comboSoundRef.current = comboSoundResult.sound;
-      console.log('Combo sound loaded');
-      
-      const timeSoundResult = await Audio.Sound.createAsync({ 
-        uri: 'https://dzdbhsix5ppsc.cloudfront.net/monster/tinified/a682015.mp3' 
-      });
-      timeSoundRef.current = timeSoundResult.sound;
-      console.log('Time sound loaded');
-      
-      console.log('All sounds loaded successfully');
-    } catch (error) {
-      console.log('Error loading sounds:', error);
-    }
-  };
 
-  // 播放音效
-  const playAccuracySound = async () => {
-    console.log('Attempting to play accuracy sound...');
-    if (accuracySoundRef.current && gameData.soundEffectsEnabled) {
-      try {
-        console.log('Playing accuracy sound (d#6)');
-        await accuracySoundRef.current.replayAsync();
-        console.log('Accuracy sound played successfully');
-      } catch (error) {
-        console.log('Error playing accuracy sound:', error);
-      }
-    } else if (!gameData.soundEffectsEnabled) {
-      console.log('Sound effects disabled, skipping accuracy sound');
-    } else {
-      console.log('Accuracy sound not loaded yet');
-    }
-  };
 
-  const playComboSound = async () => {
-    console.log('Attempting to play combo sound...');
-    if (comboSoundRef.current && gameData.soundEffectsEnabled) {
-      try {
-        console.log('Playing combo sound (g#6)');
-        await comboSoundRef.current.replayAsync();
-        console.log('Combo sound played successfully');
-      } catch (error) {
-        console.log('Error playing combo sound:', error);
-      }
-    } else if (!gameData.soundEffectsEnabled) {
-      console.log('Sound effects disabled, skipping combo sound');
-    } else {
-      console.log('Combo sound not loaded yet');
-    }
-  };
-
-  const playTimeSound = async () => {
-    console.log('Attempting to play time sound...');
-    if (timeSoundRef.current && gameData.soundEffectsEnabled) {
-      try {
-        console.log('Playing time sound (a#6)');
-        await timeSoundRef.current.replayAsync();
-        console.log('Time sound played successfully');
-      } catch (error) {
-        console.log('Error playing time sound:', error);
-      }
-    } else if (!gameData.soundEffectsEnabled) {
-      console.log('Sound effects disabled, skipping time sound');
-    } else {
-      console.log('Time sound not loaded yet');
-    }
-  };
-
-  // 卸载音频
-  const unloadSounds = async () => {
-    if (accuracySoundRef.current) await accuracySoundRef.current.unloadAsync();
-    if (comboSoundRef.current) await comboSoundRef.current.unloadAsync();
-    if (timeSoundRef.current) await timeSoundRef.current.unloadAsync();
-  };
 
   useEffect(() => {
-    // 加载音频并等待加载完成
-    const initializeAudio = async () => {
-      await loadSounds();
-      // 等待音频加载完成后再开始动画
-      setTimeout(() => {
-        startAnimations();
-      }, 1000); // 给音频更多时间加载
-    };
-    
     // Fade in the overlay
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -140,48 +39,50 @@ export default function ScoreProgressBars({
       useNativeDriver: false,
     }).start();
 
-    // 开始动画的函数
+    // 开始动画
     const startAnimations = () => {
       console.log('Starting progress bar animations...');
       
-      // Accuracy bar (yellow) - 播放 d#6 音效
+      // Accuracy bar (yellow)
       Animated.timing(performanceAnim, {
         toValue: (scoreData.accuracy || 0) / maxAccuracyScore,
         duration: 1000,
         useNativeDriver: false,
       }).start(() => {
         console.log('Accuracy bar animation completed');
-        playAccuracySound(); // 播放 accuracy 音效
+        // 触发heavy振动
+        HapticUtils.triggerHeavy();
         
-        // Combo bar (green) - 播放 g#6 音效
+        // Combo bar (green)
         Animated.timing(comboAnim, {
           toValue: scoreData.combo / maxComboScore,
           duration: 1000,
           useNativeDriver: false,
         }).start(() => {
           console.log('Combo bar animation completed');
-          playComboSound(); // 播放 combo 音效
+          // 触发heavy振动
+          HapticUtils.triggerHeavy();
           
-          // Time bar (blue) - 播放 a#6 音效
+          // Time bar (blue)
           Animated.timing(timeAnim, {
             toValue: scoreData.time / maxTimeScore,
             duration: 1000,
             useNativeDriver: false,
           }).start(() => {
             console.log('Time bar animation completed');
-            playTimeSound(); // 播放 time 音效
+            // 触发heavy振动
+            HapticUtils.triggerHeavy();
+            // 动画完成回调
+            if (onAnimationComplete) {
+              onAnimationComplete();
+            }
           });
         });
       });
     };
 
-    // 初始化音频和动画
-    initializeAudio();
-    
-    // 清理函数
-    return () => {
-      unloadSounds();
-    };
+    // 开始动画
+    startAnimations();
   }, [scoreData, maxAccuracyScore, maxComboScore, maxTimeScore]);
 
   const renderProgressBar = (label, score, maxScore, animatedValue, color) => {
